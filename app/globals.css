@@ -4,67 +4,121 @@
 
 body {
   background-color: var(--background);
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
 }
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 240 5.9% 10%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 10% 3.9%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
+    /* Neo-brutalist light theme with Catppuccin Latte inspiration - Enhanced contrast */
+    --background: 220 23% 95%; /* Latte Base */
+    --foreground: 234 25% 20%; /* Darker text for better contrast */
+    --card: 220 23% 97%;
+    --card-foreground: 234 25% 20%;
+    --popover: 220 23% 97%;
+    --popover-foreground: 234 25% 20%;
+    --primary: 316 72% 45%; /* Darker pink for better contrast */
+    --primary-foreground: 220 23% 95%;
+    --secondary: 199 91% 65%; /* Adjusted Sky */
+    --secondary-foreground: 234 25% 20%;
+    --muted: 220 23% 92%;
+    --muted-foreground: 234 25% 35%; /* Darker muted text */
+    --accent: 35 77% 55%; /* Darker yellow */
+    --accent-foreground: 234 25% 20%;
+    --destructive: 343 81% 55%; /* Darker red */
+    --destructive-foreground: 220 23% 95%;
+    --border: 234 25% 20%;
+    --input: 220 23% 95%;
+    --ring: 316 72% 45%;
+    --chart-1: 316 72% 45%; /* Darker pink */
+    --chart-2: 199 91% 65%; /* Adjusted Sky */
+    --chart-3: 35 77% 55%; /* Darker yellow */
+    --chart-4: 156 84% 47%; /* Darker green */
+    --chart-5: 266 85% 57%; /* Darker mauve */
+    --radius: 0px;
   }
+
   .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 240 5.9% 10%;
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    /* Neo-brutalist dark theme with Catppuccin Mocha inspiration - Enhanced contrast */
+    --background: 240 21% 12%; /* Darker base */
+    --foreground: 226 64% 92%; /* Lighter text */
+    --card: 240 21% 14%;
+    --card-foreground: 226 64% 92%;
+    --popover: 240 21% 14%;
+    --popover-foreground: 226 64% 92%;
+    --primary: 316 72% 86%; /* Lighter pink */
+    --primary-foreground: 240 21% 12%;
+    --secondary: 189 71% 73%;
+    --secondary-foreground: 240 21% 12%;
+    --muted: 240 21% 20%;
+    --muted-foreground: 226 64% 82%; /* Lighter muted text */
+    --accent: 41 86% 83%;
+    --accent-foreground: 240 21% 12%;
+    --destructive: 343 81% 75%;
+    --destructive-foreground: 226 64% 92%;
+    --border: 226 64% 92%;
+    --input: 240 21% 12%;
+    --ring: 316 72% 86%;
+    --chart-1: 316 72% 86%;
+    --chart-2: 189 71% 83%; /* Lighter sky */
+    --chart-3: 41 86% 83%;
+    --chart-4: 156 84% 87%; /* Lighter green */
+    --chart-5: 267 84% 91%; /* Lighter mauve */
+  }
+}
+
+@layer utilities {
+  /* Neo-brutalist utility classes */
+  .neo-brutalist-shadow {
+    box-shadow: 6px 6px 0px 0px hsl(var(--border));
+  }
+
+  .neo-brutalist-shadow-sm {
+    box-shadow: 4px 4px 0px 0px hsl(var(--border));
+  }
+
+  .neo-brutalist-box {
+    @apply border-2 border-foreground transition-all duration-200;
+    box-shadow: 4px 4px 0px 0px hsl(var(--border));
+  }
+
+  .neo-brutalist-box:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px 0px hsl(var(--border));
+  }
+
+  /* Hover effects for interactive elements */
+  .neo-hover {
+    @apply transition-all duration-200;
+  }
+
+  .neo-hover:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 4px 4px 0px 0px hsl(var(--foreground));
+  }
+
+  /* Button styles */
+  .neo-button {
+    @apply bg-primary text-primary-foreground border-2 border-foreground 
+           px-6 py-2 transition-all duration-200;
+    box-shadow: 4px 4px 0px 0px hsl(var(--foreground));
+  }
+
+  .neo-button:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px 0px hsl(var(--foreground));
+  }
+
+  /* Input styles */
+  .neo-input {
+    @apply border-2 border-foreground bg-background px-4 py-2 
+           outline-none focus:ring-0;
+    box-shadow: 4px 4px 0px 0px hsl(var(--foreground));
+  }
+
+  /* Card styles */
+  .neo-card {
+    @apply bg-card border-2 border-foreground p-6 
+           transition-all duration-200;
+    box-shadow: 6px 6px 0px 0px hsl(var(--foreground));
   }
 }

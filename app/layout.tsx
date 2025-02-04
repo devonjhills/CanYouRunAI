@@ -25,7 +25,8 @@ export default function RootLayout({
           attribute="class"
           defaultTheme="system"
           enableSystem
-          disableTransitionOnChange>
+          disableTransitionOnChange
+        >
           <Header />
           <main className="flex-grow">{children}</main>
           <Footer />
