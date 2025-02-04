@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export const Footer = () => {
   return (
-    <footer className="neo-brutalist-box bg-[hsl(var(--background))] p-4 mt-8 border border-[hsl(var(--border))]">
+    <footer className="bg-[hsl(var(--background))] p-4 mt-8 border border-[hsl(var(--border))]">
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
         <div>
           <h3 className="font-bold text-lg mb-4 text-[hsl(var(--foreground))]">

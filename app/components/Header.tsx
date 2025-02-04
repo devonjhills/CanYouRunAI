@@ -5,7 +5,7 @@ import { ModeToggle } from "@/components/ui/toggle";
 
 export const Header = () => {
   return (
-    <header className="neo-brutalist-box bg-background p-4 mb-8">
+    <header className="bg-background p-4 mb-8">
       <nav className="max-w-6xl mx-auto flex justify-between items-center">
         <Link href="/" className="neo-hover text-foreground">
           <Image
