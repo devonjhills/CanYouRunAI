@@ -18,7 +18,8 @@ export default function Home() {
           Can I Run this LLM locally?
         </h1>
         <p className="text-lg md:text-2xl text-muted-foreground">
-          CanYouRunAI analyzes your computer in just seconds, and it&apos;s FREE.
+          CanYouRunAI analyzes your computer in just seconds, and it&apos;s
+          FREE.
           <br />
           See for yourself—it takes less than a minute. Find out now if your
           computer can run any popular LLM model.
@@ -36,8 +37,10 @@ export default function Home() {
             </SelectContent>
           </Select>
 
-          <Button asChild className="w-full bg-primary text-primary-foreground hover:bg-primary/90 py-3 px-6 rounded-[--radius] text-lg">
-            <a href="/system_checkers/windows/CanYouRunAI.exe" download>
+          <Button
+            asChild
+            className="w-full bg-primary text-primary-foreground hover:bg-primary/90 py-3 px-6 rounded-[--radius] text-lg">
+            <a href="/CanYouRunAI.exe" download>
               Can you run it?
             </a>
           </Button>

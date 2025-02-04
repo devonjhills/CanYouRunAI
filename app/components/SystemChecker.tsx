@@ -29,12 +29,7 @@ export const SystemChecker = () => {
           <p className="text-muted-foreground">Intel UHD Graphics</p>
           <p className="text-chart-1 font-medium">✗ Upgrade required for optimal performance</p>
         </div>
-
-        {/* Download Button */}
-        <button className="w-full py-3 px-6 bg-primary hover:bg-primary/90 text-primary-foreground text-lg font-semibold rounded-[--radius] transition duration-200 shadow-md">
-          Download Detailed System Checker
-        </button>
-      </div>
     </div>
+  </div>
   );
 };
