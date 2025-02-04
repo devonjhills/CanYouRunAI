@@ -15,9 +15,10 @@ import { llmModels } from "@/app/data/llm-models";
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { LLMModel } from "@/app/data/llm-models";
+import { SystemInfo } from "@/app/components/SystemChecker";
 
 export default function Home() {
-  const [systemInfo, setSystemInfo] = useState(null);
+  const [systemInfo, setSystemInfo] = useState<SystemInfo | undefined>(undefined);
   const [selectedModel, setSelectedModel] = useState<LLMModel | undefined>();
   const searchParams = useSearchParams();
   const sessionId = searchParams.get('session');
@@ -29,7 +30,15 @@ export default function Home() {
         .then(res => res.json())
         .then(data => {
           if (data.success) {
-            setSystemInfo(data.systemInfo);
+            // Ensure the data matches the SystemInfo interface
+            const systemData: SystemInfo = {
+              CPU: data.systemInfo.CPU,
+              RAM: data.systemInfo.RAM,
+              GPU: data.systemInfo.GPU,
+              VRAM: data.systemInfo.VRAM,
+              OS: data.systemInfo.OS,
+            };
+            setSystemInfo(systemData);
           }
         })
         .catch(console.error);

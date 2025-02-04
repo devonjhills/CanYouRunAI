@@ -3,7 +3,7 @@
 import React from "react";
 import { LLMModel } from "@/app/data/llm-models";
 
-interface SystemInfo {
+export interface SystemInfo {
   CPU: string;
   RAM: string;
   GPU: string;
