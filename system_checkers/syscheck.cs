@@ -1,181 +1,180 @@
 using System;
-using System.Collections.Generic;
-using System.Management;
-using System.Net.Http;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Net.Http;
 using System.Runtime.InteropServices;
+using System.Text.Json;
+using Microsoft.Win32;
 using System.Windows.Forms;
 
-namespace LLMHardwareChecker
+class Program
 {
-    class Program
+    [DllImport("kernel32.dll")]
+    static extern IntPtr GetConsoleWindow();
+
+    [DllImport("user32.dll")]
+    static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+    const int SW_HIDE = 0;
+    
+    // Configuration for different environments
+    static class Config
     {
-        [DllImport("kernel32.dll")]
-        static extern IntPtr GetConsoleWindow();
+        public static readonly string[] ApiUrls = {
+            "https://canyourunai.com/api/system-check",  // Production
+            "http://localhost:3000/api/system-check",    // Development
+        };
 
-        [DllImport("user32.dll")]
-        static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+        public static readonly string[] WebUrls = {
+            "https://canyourunai.com",                  // Production
+            "http://localhost:3000"                     // Development
+        };
+    }
 
-        const int SW_HIDE = 0;
+    static async Task Main(string[] args)
+    {
+        var handle = GetConsoleWindow();
+        ShowWindow(handle, SW_HIDE);
 
-        static async Task Main(string[] args)
+        try
         {
-            // Hide console window
-            var handle = GetConsoleWindow();
-            ShowWindow(handle, SW_HIDE);
-
-            try
+            var sessionId = Guid.NewGuid().ToString();
+            var systemInfo = new Dictionary<string, string>
             {
-                // Generate a unique session ID
-                string sessionId = Guid.NewGuid().ToString();
+                ["sessionId"] = sessionId,
+                ["OS"] = Environment.OSVersion.ToString(),
+                ["CPU"] = GetCPUInfo(),
+                ["RAM"] = GetTotalRAM(),
+                ["GPU"] = GetGPUInfo(),
+                ["VRAM"] = GetGPUVRAM()  // Added back VRAM check
+            };
 
-                // Gather system information
-                var systemInfo = new Dictionary<string, string>
+            var jsonPayload = JsonSerializer.Serialize(systemInfo);
+            
+            // Try each environment until one succeeds
+            bool success = false;
+            string successUrl = "";
+            
+            for (int i = 0; i < Config.ApiUrls.Length; i++)
+            {
+                if (await SendDataAsync(jsonPayload, Config.ApiUrls[i]))
                 {
-                    ["sessionId"] = sessionId,
-                    ["OS"] = GetOSInfo(),
-                    ["CPU"] = GetCPUInfo(),
-                    ["RAM"] = GetTotalRAMInGB(),
-                    ["GPU"] = GetGPUInfo(),
-                    ["VRAM"] = GetGPUVRAM()
-                };
-
-                // Serialize and send data
-                string jsonPayload = JsonSerializer.Serialize(systemInfo);
-                string serverUrl = "https://canyourunai.com/api/system-check";
-                bool success = await SendDataToServerAsync(jsonPayload, serverUrl);
-
-                if (success)
-                {
-                    // Open browser with session ID
-                    Process.Start(new ProcessStartInfo
-                    {
-                        FileName = $"https://canyourunai.com?session={sessionId}",
-                        UseShellExecute = true
-                    });
+                    success = true;
+                    successUrl = Config.WebUrls[i];
+                    break;
                 }
             }
-            catch (Exception ex)
-            {
-                // If there's an error, show it briefly
-                MessageBox.Show($"Error: {ex.Message}", "CanYouRunAI System Checker", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
 
-        static string GetOSInfo()
-        {
-            try
+            if (success)
             {
-                return Environment.OSVersion.ToString();
-            }
-            catch (Exception ex)
-            {
-                return $"Error: {ex.Message}";
-            }
-        }
-
-        static string GetCPUInfo()
-        {
-            try
-            {
-                using (var searcher = new ManagementObjectSearcher("select Name, NumberOfCores, MaxClockSpeed from Win32_Processor"))
+                Process.Start(new ProcessStartInfo
                 {
-                    foreach (ManagementObject obj in searcher.Get())
-                    {
-                        return $"{obj["Name"]} - {obj["NumberOfCores"]} cores @ {obj["MaxClockSpeed"]} MHz";
-                    }
-                }
-                return "Unknown CPU";
+                    FileName = $"{successUrl}?session={sessionId}",
+                    UseShellExecute = true
+                });
             }
-            catch (Exception ex)
+            else
             {
-                return $"Error: {ex.Message}";
+                throw new Exception("Could not connect to any environment (production or development)");
             }
         }
-
-        static string GetTotalRAMInGB()
+        catch (Exception ex)
         {
-            try
-            {
-                double totalRamBytes = 0;
-                using (var searcher = new ManagementObjectSearcher("Select TotalPhysicalMemory from Win32_ComputerSystem"))
-                {
-                    foreach (ManagementObject obj in searcher.Get())
-                    {
-                        totalRamBytes = Convert.ToDouble(obj["TotalPhysicalMemory"]);
-                    }
-                }
-                double totalRamGB = totalRamBytes / (1024 * 1024 * 1024);
-                return totalRamGB.ToString("F1");
-            }
-            catch (Exception ex)
-            {
-                return $"Error: {ex.Message}";
-            }
+            // Show error message in a message box since console is hidden
+            System.Windows.Forms.MessageBox.Show(
+                $"Error checking system: {ex.Message}",
+                "CanYouRunAI System Checker",
+                System.Windows.Forms.MessageBoxButtons.OK,
+                System.Windows.Forms.MessageBoxIcon.Error
+            );
         }
+    }
 
-        static string GetGPUInfo()
+    static string GetCPUInfo()
+    {
+        try
         {
-            try
-            {
-                using (var searcher = new ManagementObjectSearcher("select Name from Win32_VideoController"))
-                {
-                    foreach (ManagementObject obj in searcher.Get())
-                    {
-                        return obj["Name"]?.ToString() ?? "Unknown GPU";
-                    }
-                }
-                return "Unknown GPU";
-            }
-            catch (Exception ex)
-            {
-                return $"Error: {ex.Message}";
-            }
+            using var key = Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\CentralProcessor\0");
+            var name = key?.GetValue("ProcessorNameString")?.ToString();
+            if (string.IsNullOrEmpty(name)) throw new Exception("Could not read CPU info");
+            return name;
         }
-
-        static string GetGPUVRAM()
+        catch
         {
-            try
-            {
-                using (var searcher = new ManagementObjectSearcher("select AdapterRAM from Win32_VideoController"))
-                {
-                    foreach (ManagementObject obj in searcher.Get())
-                    {
-                        if (obj["AdapterRAM"] != null)
-                        {
-                            double vramBytes = Convert.ToDouble(obj["AdapterRAM"]);
-                            double vramGB = vramBytes / (1024 * 1024 * 1024);
-                            return vramGB.ToString("F1");
-                        }
-                    }
-                }
-                return "Unknown VRAM";
-            }
-            catch (Exception ex)
-            {
-                return $"Error: {ex.Message}";
-            }
+            // Fallback to basic info if registry read fails
+            return $"{Environment.ProcessorCount} cores @ unknown speed";
         }
+    }
 
-        static async Task<bool> SendDataToServerAsync(string jsonPayload, string url)
+    static string GetTotalRAM()
+    {
+        try
         {
-            try
+            return (GC.GetGCMemoryInfo().TotalAvailableMemoryBytes / (1024.0 * 1024 * 1024)).ToString("F1");
+        }
+        catch
+        {
+            return "Unknown";
+        }
+    }
+
+    static string GetGPUInfo()
+    {
+        try
+        {
+            using var key = Registry.LocalMachine.OpenSubKey(@"HARDWARE\DEVICEMAP\VIDEO");
+            if (key == null) return "Unknown GPU";
+            
+            var subKeyName = key.GetValueNames().FirstOrDefault();
+            if (subKeyName == null) return "Unknown GPU";
+            
+            using var gpuKey = Registry.LocalMachine.OpenSubKey(key.GetValue(subKeyName)?.ToString() ?? "");
+            return gpuKey?.GetValue("Device Description")?.ToString() ?? "Unknown GPU";
+        }
+        catch
+        {
+            return "Unknown GPU";
+        }
+    }
+
+    static string GetGPUVRAM()
+    {
+        try
+        {
+            using var key = Registry.LocalMachine.OpenSubKey(@"HARDWARE\DEVICEMAP\VIDEO");
+            if (key == null) return "Unknown";
+
+            var subKeyName = key.GetValueNames().FirstOrDefault();
+            if (subKeyName == null) return "Unknown";
+
+            using var gpuKey = Registry.LocalMachine.OpenSubKey(key.GetValue(subKeyName)?.ToString() ?? "");
+            var memorySize = gpuKey?.GetValue("HardwareInformation.MemorySize");
+            
+            if (memorySize != null)
             {
-                using (HttpClient client = new HttpClient())
-                {
-                    client.DefaultRequestHeaders.Add("User-Agent", "CanYouRunAI-SystemChecker/1.0");
-                    var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
-                    HttpResponseMessage response = await client.PostAsync(url, content);
-                    return response.IsSuccessStatusCode;
-                }
+                double vramBytes = Convert.ToDouble(memorySize);
+                return (vramBytes / (1024 * 1024 * 1024)).ToString("F1");
             }
-            catch
-            {
-                return false;
-            }
+            return "Unknown";
+        }
+        catch
+        {
+            return "Unknown";
+        }
+    }
+
+    static async Task<bool> SendDataAsync(string jsonPayload, string url)
+    {
+        try
+        {
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("User-Agent", "CanYouRunAI-SystemChecker/1.0");
+            var content = new StringContent(jsonPayload, System.Text.Encoding.UTF8, "application/json");
+            var response = await client.PostAsync(url, content);
+            return response.IsSuccessStatusCode;
+        }
+        catch
+        {
+            return false;
         }
     }
 }

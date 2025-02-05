@@ -12,47 +12,64 @@ import {
 } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { llmModels } from "@/app/data/llm-models";
-import { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { LLMModel } from "@/app/data/llm-models";
 import { SystemInfo } from "@/app/components/SystemChecker";
 
 export default function Home() {
-  const [systemInfo, setSystemInfo] = useState<SystemInfo | undefined>(undefined);
+  const [systemInfo, setSystemInfo] = useState<SystemInfo | undefined>(
+    undefined
+  );
   const [selectedModel, setSelectedModel] = useState<LLMModel | undefined>();
   const searchParams = useSearchParams();
-  const sessionId = searchParams.get('session');
 
   useEffect(() => {
+    const sessionId = searchParams.get("session");
+    console.log("Session ID from URL:", sessionId);
     if (sessionId) {
-      // Fetch system info when session ID is present
-      fetch(`/api/system-check?session=${sessionId}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            // Ensure the data matches the SystemInfo interface
+      fetch(
+        `https://canyourunai-worker.digitalveilmedia.workers.dev/api/system-check?session=${sessionId}`
+      )
+        .then((res) => res.json())
+        .then((data) => {
+          // Assert that data is of the expected shape
+          const response = data as {
+            success: boolean;
+            systemInfo?: {
+              CPU: string;
+              RAM: string;
+              GPU: string;
+              VRAM: string;
+              OS: string;
+            };
+            error?: string;
+          };
+
+          if (response.success && response.systemInfo) {
             const systemData: SystemInfo = {
-              CPU: data.systemInfo.CPU,
-              RAM: data.systemInfo.RAM,
-              GPU: data.systemInfo.GPU,
-              VRAM: data.systemInfo.VRAM,
-              OS: data.systemInfo.OS,
+              CPU: response.systemInfo.CPU,
+              RAM: response.systemInfo.RAM,
+              GPU: response.systemInfo.GPU,
+              VRAM: response.systemInfo.VRAM,
+              OS: response.systemInfo.OS,
             };
             setSystemInfo(systemData);
           }
         })
         .catch(console.error);
+    } else {
+      console.error("No sessionId found in the URL");
     }
-  }, [sessionId]);
+  }, [searchParams]);
 
   const handleModelSelect = (modelId: string) => {
-    const model = llmModels.find(m => m.id === modelId);
+    const model = llmModels.find((m) => m.id === modelId);
     setSelectedModel(model);
   };
 
-  const WINDOWS_EXE_URL =
-    "https://github.com/devonjhills/CanYouRunAI/releases/download/v1.0.0/CanYouRunAI.exe";
-    
+  const WINDOWS_EXE_URL = "/CanYouRunAI.exe";
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -63,9 +80,10 @@ export default function Home() {
               Can I Run this LLM <span className="text-primary">locally?</span>
             </h1>
             <p className="text-xl md:text-2xl text-muted-foreground">
-              Analyze your computer in seconds. <span className="font-bold text-foreground">100% Free.</span>
+              Analyze your computer in seconds.{" "}
+              <span className="font-bold text-foreground">100% Free.</span>
             </p>
-            
+
             {/* Action Steps */}
             <div className="mt-12 space-y-8">
               {/* Step 1 */}
@@ -100,7 +118,7 @@ export default function Home() {
                 </div>
                 <Button asChild className="neo-button w-full text-lg py-6">
                   <a href={WINDOWS_EXE_URL} download>
-                    Download System Checker
+                    Can You Run This AI?
                   </a>
                 </Button>
               </div>
@@ -117,8 +135,8 @@ export default function Home() {
             <h2 className="text-3xl font-bold text-center mb-8">
               System Requirements Check
             </h2>
-            <SystemChecker 
-              systemInfo={systemInfo} 
+            <SystemChecker
+              systemInfo={systemInfo}
               selectedModel={selectedModel}
             />
           </div>

@@ -17,18 +17,19 @@ interface SystemCheckerProps {
 }
 
 export const SystemChecker = ({ systemInfo, selectedModel }: SystemCheckerProps) => {
-  if (!systemInfo || !selectedModel) {
+  if (!systemInfo) {
     return (
       <div className="neo-card mb-8 p-6">
         <p className="text-muted-foreground text-center">
-          Download and run the system checker to see your results
+          Download and run the system checker to see your system information.
         </p>
       </div>
     );
   }
 
+  // Function to compare system values with requirements
   const getComparisonStatus = (type: 'CPU' | 'RAM' | 'GPU' | 'VRAM') => {
-    // This is a simple comparison - you might want to make this more sophisticated
+    if (!selectedModel) return "ℹ"; // Default indicator when model isn’t set.
     switch (type) {
       case 'RAM':
         const userRam = parseFloat(systemInfo.RAM);
@@ -38,7 +39,7 @@ export const SystemChecker = ({ systemInfo, selectedModel }: SystemCheckerProps)
         return "✗";
       case 'VRAM':
         const userVram = parseFloat(systemInfo.VRAM);
-        const reqVram = selectedModel.requirements.gpu.includes('GB') 
+        const reqVram = selectedModel.requirements.gpu.includes('GB')
           ? parseFloat(selectedModel.requirements.gpu.split('GB')[0])
           : 0;
         if (userVram >= reqVram) return "✓";
@@ -61,7 +62,7 @@ export const SystemChecker = ({ systemInfo, selectedModel }: SystemCheckerProps)
   return (
     <div className="neo-card mb-8 p-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Your System */}
+        {/* Your System Information */}
         <div className="space-y-4">
           <h3 className="text-xl font-bold">Your System</h3>
           <div className="space-y-3">
@@ -72,41 +73,47 @@ export const SystemChecker = ({ systemInfo, selectedModel }: SystemCheckerProps)
               >
                 <h4 className="font-bold text-foreground">{key}</h4>
                 <p className="text-muted-foreground">{value}</p>
-                <p className="font-medium">
-                  {getComparisonStatus(key as any)} {" "}
-                  {key === 'RAM' && getComparisonStatus('RAM') === "⚠" && "Minimum requirements met"}
-                  {key === 'RAM' && getComparisonStatus('RAM') === "✓" && "Exceeds requirements"}
-                  {key === 'RAM' && getComparisonStatus('RAM') === "✗" && "Below requirements"}
-                </p>
+                {key === 'RAM' && selectedModel && (
+                  <p className="font-medium">
+                    {getComparisonStatus('RAM')}{" "}
+                    {getComparisonStatus('RAM') === "⚠" && "Minimum requirements met"}
+                    {getComparisonStatus('RAM') === "✓" && "Exceeds requirements"}
+                    {getComparisonStatus('RAM') === "✗" && "Below requirements"}
+                  </p>
+                )}
               </div>
             ))}
           </div>
         </div>
 
-        {/* Model Requirements */}
-        <div className="space-y-4">
-          <h3 className="text-xl font-bold">{selectedModel.name} Requirements</h3>
-          <div className="space-y-3">
-            <div className="neo-brutalist-shadow-sm p-4 border-4 border-primary/30">
-              <h4 className="font-bold">CPU</h4>
-              <p className="text-muted-foreground">{selectedModel.requirements.cpu}</p>
-            </div>
-            <div className="neo-brutalist-shadow-sm p-4 border-4 border-primary/30">
-              <h4 className="font-bold">RAM</h4>
-              <p className="text-muted-foreground">{selectedModel.requirements.ram}</p>
-            </div>
-            <div className="neo-brutalist-shadow-sm p-4 border-4 border-primary/30">
-              <h4 className="font-bold">GPU</h4>
-              <p className="text-muted-foreground">{selectedModel.requirements.gpu}</p>
+        {/* Model Requirements (if model is selected) */}
+        {selectedModel && (
+          <div className="space-y-4">
+            <h3 className="text-xl font-bold">{selectedModel.name} Requirements</h3>
+            <div className="space-y-3">
+              <div className="neo-brutalist-shadow-sm p-4 border-4 border-primary/30">
+                <h4 className="font-bold">CPU</h4>
+                <p className="text-muted-foreground">{selectedModel.requirements.cpu}</p>
+              </div>
+              <div className="neo-brutalist-shadow-sm p-4 border-4 border-primary/30">
+                <h4 className="font-bold">RAM</h4>
+                <p className="text-muted-foreground">{selectedModel.requirements.ram}</p>
+              </div>
+              <div className="neo-brutalist-shadow-sm p-4 border-4 border-primary/30">
+                <h4 className="font-bold">GPU</h4>
+                <p className="text-muted-foreground">{selectedModel.requirements.gpu}</p>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
-      <div className="mt-6 p-4 bg-muted/30 rounded-lg">
-        <h4 className="font-bold mb-2">Notes</h4>
-        <p className="text-muted-foreground">{selectedModel.requirements.notes}</p>
-      </div>
+      {selectedModel && (
+        <div className="mt-6 p-4 bg-muted/30 rounded-lg">
+          <h4 className="font-bold mb-2">Notes</h4>
+          <p className="text-muted-foreground">{selectedModel.requirements.notes}</p>
+        </div>
+      )}
     </div>
   );
 };

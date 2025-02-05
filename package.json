@@ -33,6 +33,8 @@
     "typescript": "5.2.2"
   },
   "devDependencies": {
-    "prettier": "^3.4.2"
+    "@cloudflare/workers-types": "^4.20250204.0",
+    "prettier": "^3.4.2",
+    "wrangler": "^3.107.3"
   }
 }
