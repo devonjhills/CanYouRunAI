@@ -19,7 +19,7 @@ import { SystemInfo } from "@/app/components/SystemChecker";
 
 export default function Home() {
   const [systemInfo, setSystemInfo] = useState<SystemInfo | undefined>(
-    undefined
+    undefined,
   );
   const [selectedModel, setSelectedModel] = useState<LLMModel | undefined>();
   const searchParams = useSearchParams();
@@ -29,7 +29,7 @@ export default function Home() {
     console.log("Session ID from URL:", sessionId);
     if (sessionId) {
       fetch(
-        `https://canyourunai-worker.digitalveilmedia.workers.dev/api/system-check?session=${sessionId}`
+        `https://canyourunai-worker.digitalveilmedia.workers.dev/api/system-check?session=${sessionId}`,
       )
         .then((res) => res.json())
         .then((data) => {

@@ -16,7 +16,10 @@ interface SystemCheckerProps {
   selectedModel?: LLMModel;
 }
 
-export const SystemChecker = ({ systemInfo, selectedModel }: SystemCheckerProps) => {
+export const SystemChecker = ({
+  systemInfo,
+  selectedModel,
+}: SystemCheckerProps) => {
   if (!systemInfo) {
     return (
       <div className="neo-card mb-8 p-6">
@@ -28,19 +31,21 @@ export const SystemChecker = ({ systemInfo, selectedModel }: SystemCheckerProps)
   }
 
   // Function to compare system values with requirements
-  const getComparisonStatus = (type: 'CPU' | 'RAM' | 'GPU' | 'VRAM') => {
+  const getComparisonStatus = (type: "CPU" | "RAM" | "GPU" | "VRAM") => {
     if (!selectedModel) return "ℹ"; // Default indicator when model isn’t set.
     switch (type) {
-      case 'RAM':
+      case "RAM":
         const userRam = parseFloat(systemInfo.RAM);
-        const reqRam = parseFloat(selectedModel.requirements.ram.split('GB')[0]);
+        const reqRam = parseFloat(
+          selectedModel.requirements.ram.split("GB")[0],
+        );
         if (userRam >= reqRam * 1.5) return "✓";
         if (userRam >= reqRam) return "⚠";
         return "✗";
-      case 'VRAM':
+      case "VRAM":
         const userVram = parseFloat(systemInfo.VRAM);
-        const reqVram = selectedModel.requirements.gpu.includes('GB')
-          ? parseFloat(selectedModel.requirements.gpu.split('GB')[0])
+        const reqVram = selectedModel.requirements.gpu.includes("GB")
+          ? parseFloat(selectedModel.requirements.gpu.split("GB")[0])
           : 0;
         if (userVram >= reqVram) return "✓";
         if (userVram >= reqVram * 0.75) return "⚠";
@@ -52,10 +57,14 @@ export const SystemChecker = ({ systemInfo, selectedModel }: SystemCheckerProps)
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "✓": return "border-green-500";
-      case "⚠": return "border-yellow-500";
-      case "✗": return "border-red-500";
-      default: return "border-blue-500";
+      case "✓":
+        return "border-green-500";
+      case "⚠":
+        return "border-yellow-500";
+      case "✗":
+        return "border-red-500";
+      default:
+        return "border-blue-500";
     }
   };
 
@@ -67,18 +76,20 @@ export const SystemChecker = ({ systemInfo, selectedModel }: SystemCheckerProps)
           <h3 className="text-xl font-bold">Your System</h3>
           <div className="space-y-3">
             {Object.entries(systemInfo).map(([key, value]) => (
-              <div 
+              <div
                 key={key}
                 className={`neo-brutalist-shadow-sm p-4 border-4 ${getStatusColor(getComparisonStatus(key as any))}`}
               >
                 <h4 className="font-bold text-foreground">{key}</h4>
                 <p className="text-muted-foreground">{value}</p>
-                {key === 'RAM' && selectedModel && (
+                {key === "RAM" && selectedModel && (
                   <p className="font-medium">
-                    {getComparisonStatus('RAM')}{" "}
-                    {getComparisonStatus('RAM') === "⚠" && "Minimum requirements met"}
-                    {getComparisonStatus('RAM') === "✓" && "Exceeds requirements"}
-                    {getComparisonStatus('RAM') === "✗" && "Below requirements"}
+                    {getComparisonStatus("RAM")}{" "}
+                    {getComparisonStatus("RAM") === "⚠" &&
+                      "Minimum requirements met"}
+                    {getComparisonStatus("RAM") === "✓" &&
+                      "Exceeds requirements"}
+                    {getComparisonStatus("RAM") === "✗" && "Below requirements"}
                   </p>
                 )}
               </div>
@@ -89,19 +100,27 @@ export const SystemChecker = ({ systemInfo, selectedModel }: SystemCheckerProps)
         {/* Model Requirements (if model is selected) */}
         {selectedModel && (
           <div className="space-y-4">
-            <h3 className="text-xl font-bold">{selectedModel.name} Requirements</h3>
+            <h3 className="text-xl font-bold">
+              {selectedModel.name} Requirements
+            </h3>
             <div className="space-y-3">
               <div className="neo-brutalist-shadow-sm p-4 border-4 border-primary/30">
                 <h4 className="font-bold">CPU</h4>
-                <p className="text-muted-foreground">{selectedModel.requirements.cpu}</p>
+                <p className="text-muted-foreground">
+                  {selectedModel.requirements.cpu}
+                </p>
               </div>
               <div className="neo-brutalist-shadow-sm p-4 border-4 border-primary/30">
                 <h4 className="font-bold">RAM</h4>
-                <p className="text-muted-foreground">{selectedModel.requirements.ram}</p>
+                <p className="text-muted-foreground">
+                  {selectedModel.requirements.ram}
+                </p>
               </div>
               <div className="neo-brutalist-shadow-sm p-4 border-4 border-primary/30">
                 <h4 className="font-bold">GPU</h4>
-                <p className="text-muted-foreground">{selectedModel.requirements.gpu}</p>
+                <p className="text-muted-foreground">
+                  {selectedModel.requirements.gpu}
+                </p>
               </div>
             </div>
           </div>
@@ -111,7 +130,9 @@ export const SystemChecker = ({ systemInfo, selectedModel }: SystemCheckerProps)
       {selectedModel && (
         <div className="mt-6 p-4 bg-muted/30 rounded-lg">
           <h4 className="font-bold mb-2">Notes</h4>
-          <p className="text-muted-foreground">{selectedModel.requirements.notes}</p>
+          <p className="text-muted-foreground">
+            {selectedModel.requirements.notes}
+          </p>
         </div>
       )}
     </div>
