@@ -21,21 +21,37 @@ import { SystemInfo } from "@/app/components/SystemChecker";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Cookies from "js-cookie";
 import { Cpu, MemoryStick, MonitorCog, HardDrive, Monitor } from "lucide-react";
+import {
+  QUANTIZATION_LEVELS,
+  type SystemSpecs,
+  type ModelAnalysis,
+  type AdvancedAnalysis,
+} from "./data/llm-models";
 
 const isProd = process.env.NODE_ENV === "production";
+
+// URL for the quantize worker; fallback to placeholder if not set.
+const QUANTIZE_WORKER_URL =
+  process.env.NEXT_PUBLIC_QUANTIZE_WORKER_URL ||
+  "https://canyourunai-quantize.digitalveilmedia.workers.dev";
 
 export default function Home() {
   const [systemInfo, setSystemInfo] = useState<SystemInfo | undefined>(
     undefined,
   );
   const [selectedModel, setSelectedModel] = useState<LLMModel | undefined>();
-  const searchParams = useSearchParams();
   const [status, setStatus] = useState<
     "idle" | "downloading" | "waiting" | "gathering" | "finished"
   >("idle");
   const [comparisonModel, setComparisonModel] = useState<LLMModel | undefined>(
     llmModels[0],
   );
+  const [analysis, setAnalysis] = useState<AdvancedAnalysis | null>(null);
+  const [loading, setLoading] = useState(false);
+  // This state now holds the modelId entered in the advanced tab.
+  const [modelId, setModelId] = useState("");
+
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     // Initial check on page load
@@ -55,7 +71,6 @@ export default function Home() {
             mode: "cors",
           },
         );
-
         const data = (await response.json()) as {
           success: boolean;
           systemInfo?: SystemInfo;
@@ -75,7 +90,7 @@ export default function Home() {
           setStatus("gathering");
           await new Promise((resolve) => setTimeout(resolve, 1000));
 
-          // Store in localStorage
+          // Store in localStorage or cookie
           storeSystemInfo(data.systemInfo);
           setSystemInfo(data.systemInfo);
           setStatus("finished");
@@ -99,7 +114,7 @@ export default function Home() {
 
   useEffect(() => {
     if (status === "finished") {
-      // Wait 1 seconds before closing the overlay
+      // Wait 1 second before closing the overlay
       const timer = setTimeout(() => {
         setStatus("idle");
       }, 1000);
@@ -113,48 +128,6 @@ export default function Home() {
   };
 
   const WINDOWS_EXE_URL = "/CanYouRunAI.exe";
-
-  const checkStatus = async (sessionId: string) => {
-    try {
-      const response = await fetch(
-        `https://canyourunai-worker.digitalveilmedia.workers.dev/api/system-check?session=${sessionId}`,
-      );
-      const data = (await response.json()) as {
-        success: boolean;
-        systemInfo?: SystemInfo;
-      };
-
-      if (
-        data.success &&
-        data.systemInfo &&
-        data.systemInfo.CPU &&
-        data.systemInfo.RAM &&
-        data.systemInfo.GPU &&
-        data.systemInfo.VRAM &&
-        data.systemInfo.OS
-      ) {
-        setStatus("finished");
-        // Store in localStorage for persistence
-        storeSystemInfo(data.systemInfo);
-        setSystemInfo({
-          CPU: data.systemInfo.CPU,
-          RAM: data.systemInfo.RAM,
-          GPU: data.systemInfo.GPU,
-          VRAM: data.systemInfo.VRAM,
-          OS: data.systemInfo.OS,
-        });
-        const element = document.getElementById("system-requirements");
-        if (element) {
-          element.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-        return true;
-      }
-      return false;
-    } catch (error) {
-      console.error("Error checking status:", error);
-      return false;
-    }
-  };
 
   const handleSystemCheck = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -189,7 +162,11 @@ export default function Home() {
                   <div key={step} className="flex flex-col items-center">
                     <div
                       className={`w-10 h-10 rounded-full flex items-center justify-center border-2 
-                    ${status === step ? "border-primary bg-primary text-primary-foreground" : "border-muted text-muted-foreground"}`}
+                    ${
+                      status === step
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-muted text-muted-foreground"
+                    }`}
                     >
                       {i + 1}
                     </div>
@@ -240,14 +217,12 @@ export default function Home() {
   // Store system info
   const storeSystemInfo = (info: SystemInfo) => {
     if (isProd) {
-      // Production: Use cookies
       Cookies.set("systemInfo", JSON.stringify(info), {
         expires: 1, // 1 day
         secure: true,
         sameSite: "none",
       });
     } else {
-      // Development: Use localStorage
       localStorage.setItem("systemInfo", JSON.stringify(info));
     }
   };
@@ -263,7 +238,6 @@ export default function Home() {
     }
   };
 
-  // Add these helper functions at the top of the file
   const compareRAMorVRAM = (actual: string, required: string): boolean => {
     if (actual === "Unknown") return false;
     const actualGB = parseFloat(actual.split(" ")[0]);
@@ -273,7 +247,53 @@ export default function Home() {
 
   const compareOS = (actual: string, required: string): boolean => {
     if (actual === "Unknown") return false;
+    const actualMatch = actual.toLowerCase().match(/windows (\d+)/);
+    const requiredMatch = required.toLowerCase().match(/windows (\d+)/);
+    if (actualMatch && requiredMatch) {
+      const actualVersion = parseInt(actualMatch[1]);
+      const requiredVersion = parseInt(requiredMatch[1]);
+      return actualVersion >= requiredVersion;
+    }
     return actual.toLowerCase() === required.toLowerCase();
+  };
+
+  const runAdvancedCheck = async () => {
+    setLoading(true);
+    try {
+      // Build systemSpecs with fallback values if systemInfo is undefined
+      const specs: SystemSpecs = {
+        totalRam: systemInfo?.RAM
+          ? parseFloat(systemInfo.RAM.split(" ")[0])
+          : 16,
+        ramBandwidth: 48, // Typical DDR4 bandwidth in GB/s
+        vramPerGpu: systemInfo?.VRAM
+          ? parseFloat(systemInfo.VRAM.split(" ")[0])
+          : 8,
+        numGpus: 1,
+        gpuBandwidth: 300, // Typical mid-range GPU bandwidth in GB/s
+        gpuBrand: systemInfo?.GPU || "NVIDIA GeForce RTX 3060",
+      };
+
+      // Use the modelId from the text input (advanced tab), not selectedModel.
+      const response = await fetch(`${QUANTIZE_WORKER_URL}/api/quantize`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ modelId, systemSpecs: specs }),
+        mode: "cors",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const errorData = (await response.json()) as { error?: string };
+        throw new Error(errorData.error || "Failed to run advanced check");
+      }
+
+      const data = await response.json();
+      setAnalysis(data as AdvancedAnalysis);
+    } catch (error) {
+      console.error("Failed to run advanced check:", error);
+    }
+    setLoading(false);
   };
 
   return (
@@ -343,12 +363,14 @@ export default function Home() {
               System Requirements Check
             </h2>
             <Tabs defaultValue="comparison" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="comparison">
                   Requirements Comparison
                 </TabsTrigger>
                 <TabsTrigger value="my-system">My Computer Details</TabsTrigger>
+                <TabsTrigger value="advanced">Advanced Analysis</TabsTrigger>
               </TabsList>
+
               <TabsContent value="comparison">
                 <Card className="p-6">
                   <div className="space-y-6">
@@ -484,6 +506,7 @@ export default function Home() {
                   </div>
                 </Card>
               </TabsContent>
+
               <TabsContent value="my-system">
                 <Card className="p-6">
                   {systemInfo ? (
@@ -539,6 +562,184 @@ export default function Home() {
                       check tool.
                     </div>
                   )}
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="advanced">
+                <Card className="p-6">
+                  <div className="space-y-6">
+                    <div className="flex flex-col space-y-4">
+                      <label className="text-sm font-medium">
+                        Hugging Face Model ID
+                      </label>
+                      <div className="flex gap-4">
+                        <input
+                          type="text"
+                          onChange={(e) => setModelId(e.target.value)}
+                          placeholder="e.g., microsoft/phi-2"
+                          className="neo-input flex-1 p-2 text-sm"
+                        />
+                        <Button
+                          onClick={runAdvancedCheck}
+                          disabled={loading || !modelId}
+                          className="neo-button"
+                        >
+                          {loading ? "Analyzing..." : "Analyze Model"}
+                        </Button>
+                      </div>
+                    </div>
+
+                    {analysis && analysis.systemSpecs && (
+                      <div className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="space-y-4 p-4 rounded-lg bg-muted/30">
+                            <h3 className="font-semibold text-lg">
+                              System Specs
+                            </h3>
+                            <div className="space-y-2">
+                              <p className="flex justify-between">
+                                <span className="text-muted-foreground">
+                                  RAM:
+                                </span>
+                                <span>
+                                  {analysis.systemSpecs.totalRam?.toFixed(1) ||
+                                    "N/A"}{" "}
+                                  GB
+                                </span>
+                              </p>
+                              <p className="flex justify-between">
+                                <span className="text-muted-foreground">
+                                  RAM Bandwidth:
+                                </span>
+                                <span>
+                                  {analysis.systemSpecs.ramBandwidth?.toFixed(
+                                    1,
+                                  ) || "N/A"}{" "}
+                                  GB/s
+                                </span>
+                              </p>
+                              <p className="flex justify-between">
+                                <span className="text-muted-foreground">
+                                  GPU:
+                                </span>
+                                <span>
+                                  {analysis.systemSpecs.numGpus}x{" "}
+                                  {analysis.systemSpecs.gpuBrand || "N/A"}
+                                </span>
+                              </p>
+                              <p className="flex justify-between">
+                                <span className="text-muted-foreground">
+                                  VRAM:
+                                </span>
+                                <span>
+                                  {analysis.systemSpecs.vramPerGpu?.toFixed(
+                                    1,
+                                  ) || "N/A"}{" "}
+                                  GB per GPU
+                                </span>
+                              </p>
+                              <p className="flex justify-between">
+                                <span className="text-muted-foreground">
+                                  GPU Bandwidth:
+                                </span>
+                                <span>
+                                  {analysis.systemSpecs.gpuBandwidth?.toFixed(
+                                    1,
+                                  ) || "N/A"}{" "}
+                                  GB/s
+                                </span>
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="space-y-4 p-4 rounded-lg bg-muted/30">
+                            <h3 className="font-semibold text-lg">
+                              Model Info
+                            </h3>
+                            <p className="flex justify-between">
+                              <span className="text-muted-foreground">
+                                Parameters:
+                              </span>
+                              <span>
+                                {analysis.modelParams
+                                  ? (analysis.modelParams / 1e9).toFixed(1)
+                                  : "N/A"}
+                                B
+                              </span>
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {Object.entries(
+                            analysis.quantizationResults || {},
+                          ).map(([quant, data]) => (
+                            <Card
+                              key={quant}
+                              className="p-4 neo-brutalist-shadow"
+                            >
+                              <h4 className="font-bold text-lg mb-3 text-primary">
+                                {quant.toUpperCase()}
+                              </h4>
+                              <div className="space-y-2 text-sm">
+                                <p className="flex justify-between">
+                                  <span className="text-muted-foreground">
+                                    Run Type:
+                                  </span>
+                                  <span>{data.runType || "N/A"}</span>
+                                </p>
+                                <p className="flex justify-between">
+                                  <span className="text-muted-foreground">
+                                    Memory Required:
+                                  </span>
+                                  <span>
+                                    {data.memoryRequired?.toFixed(2) || "N/A"}{" "}
+                                    GB
+                                  </span>
+                                </p>
+                                {data.offloadPercentage > 0 && (
+                                  <p className="flex justify-between">
+                                    <span className="text-muted-foreground">
+                                      GPU Usage:
+                                    </span>
+                                    <span>
+                                      {(100 - data.offloadPercentage)?.toFixed(
+                                        1,
+                                      ) || "N/A"}
+                                      %
+                                    </span>
+                                  </p>
+                                )}
+                                {data.tokensPerSecond && (
+                                  <p className="flex justify-between">
+                                    <span className="text-muted-foreground">
+                                      Est. Speed:
+                                    </span>
+                                    <span>
+                                      {data.tokensPerSecond.toFixed(2) || "N/A"}{" "}
+                                      tk/s
+                                    </span>
+                                  </p>
+                                )}
+                                {data.maxContext && (
+                                  <p className="flex justify-between">
+                                    <span className="text-muted-foreground">
+                                      Max Context:
+                                    </span>
+                                    <span>
+                                      {data.maxContext?.toLocaleString() ||
+                                        "N/A"}{" "}
+                                      tokens
+                                    </span>
+                                  </p>
+                                )}
+                              </div>
+                            </Card>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </Card>
               </TabsContent>
             </Tabs>

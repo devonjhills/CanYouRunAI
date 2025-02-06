@@ -17,11 +17,40 @@ export const SystemRequirements = () => {
   const filteredModels = llmModels.filter((model) => {
     switch (selectedCategory) {
       case "popular":
-        return ["llama2-7b", "mixtral-8x7b"].includes(model.id);
+        // Models that are more accessible in terms of requirements
+        return ["llama2-7b", "phi-4", "gemma2-9b", "mixtral-8x7b"].includes(
+          model.id,
+        );
+
       case "cpu-only":
-        return !model.requirements.GPU.includes("NVIDIA");
+        // More accurate CPU-only check
+        const gpuReq = model.requirements.GPU.toLowerCase();
+        return (
+          !gpuReq.includes("nvidia") &&
+          !gpuReq.includes("rtx") &&
+          !gpuReq.includes("gtx")
+        );
+
       case "high-end":
-        return ["llama2-70b", "mixtral-8x7b"].includes(model.id);
+        // Based on actual high resource requirements
+        const ramReq = parseFloat(model.requirements.RAM.split(" ")[0]);
+        const vramReq = parseFloat(model.requirements.VRAM.split(" ")[0]);
+        return ramReq >= 64 || vramReq >= 24;
+
+      case "coding":
+        // Models optimized for code generation
+        return (
+          model.description.toLowerCase().includes("cod") ||
+          ["codestral-mamba", "deepseek-v3", "phi-4"].includes(model.id)
+        );
+
+      case "multilingual":
+        // Models with multilingual capabilities
+        return (
+          model.description.toLowerCase().includes("multilingual") ||
+          ["bloom-176b", "llama3-1-405b", "qwen2-72b"].includes(model.id)
+        );
+
       default:
         return true;
     }
