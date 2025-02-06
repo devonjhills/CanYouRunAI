@@ -9,6 +9,8 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectGroup,
+  SelectLabel,
 } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { llmModels } from "@/app/data/llm-models";
@@ -16,16 +18,11 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { LLMModel } from "@/app/data/llm-models";
 import { SystemInfo } from "@/app/components/SystemChecker";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Cookies from "js-cookie";
-import { Cpu, MemoryStick, MonitorCog, HardDrive, Monitor } from 'lucide-react';
+import { Cpu, MemoryStick, MonitorCog, HardDrive, Monitor } from "lucide-react";
 
-const isProd = process.env.NODE_ENV === 'production';
+const isProd = process.env.NODE_ENV === "production";
 
 export default function Home() {
   const [systemInfo, setSystemInfo] = useState<SystemInfo | undefined>(
@@ -36,7 +33,9 @@ export default function Home() {
   const [status, setStatus] = useState<
     "idle" | "downloading" | "waiting" | "gathering" | "finished"
   >("idle");
-  const [comparisonModel, setComparisonModel] = useState<LLMModel | undefined>(llmModels[0]);
+  const [comparisonModel, setComparisonModel] = useState<LLMModel | undefined>(
+    llmModels[0],
+  );
 
   useEffect(() => {
     // Initial check on page load
@@ -51,28 +50,31 @@ export default function Home() {
       try {
         const response = await fetch(
           "https://canyourunai-worker.digitalveilmedia.workers.dev/api/system-check",
-          { 
-            credentials: 'include',
-            mode: 'cors'
-          }
+          {
+            credentials: "include",
+            mode: "cors",
+          },
         );
 
-        const data = await response.json() as {
+        const data = (await response.json()) as {
           success: boolean;
           systemInfo?: SystemInfo;
         };
 
         console.log("API response:", data);
 
-        if (data.success && data.systemInfo && 
-            data.systemInfo.CPU && 
-            data.systemInfo.RAM && 
-            data.systemInfo.GPU && 
-            data.systemInfo.VRAM && 
-            data.systemInfo.OS) {
+        if (
+          data.success &&
+          data.systemInfo &&
+          data.systemInfo.CPU &&
+          data.systemInfo.RAM &&
+          data.systemInfo.GPU &&
+          data.systemInfo.VRAM &&
+          data.systemInfo.OS
+        ) {
           setStatus("gathering");
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+
           // Store in localStorage
           storeSystemInfo(data.systemInfo);
           setSystemInfo(data.systemInfo);
@@ -80,7 +82,7 @@ export default function Home() {
 
           const element = document.getElementById("system-requirements");
           if (element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            element.scrollIntoView({ behavior: "smooth", block: "start" });
           }
         }
       } catch (error) {
@@ -214,7 +216,8 @@ export default function Home() {
                     Please run the downloaded CanYouRunAI.exe file
                     <br />
                     <span className="text-xs mt-2 block">
-                      This tool only collects system specifications, no personal information.
+                      This tool only collects system specifications, no personal
+                      information.
                     </span>
                   </>
                 )}
@@ -238,24 +241,24 @@ export default function Home() {
   const storeSystemInfo = (info: SystemInfo) => {
     if (isProd) {
       // Production: Use cookies
-      Cookies.set('systemInfo', JSON.stringify(info), { 
+      Cookies.set("systemInfo", JSON.stringify(info), {
         expires: 1, // 1 day
         secure: true,
-        sameSite: 'none'
+        sameSite: "none",
       });
     } else {
       // Development: Use localStorage
-      localStorage.setItem('systemInfo', JSON.stringify(info));
+      localStorage.setItem("systemInfo", JSON.stringify(info));
     }
   };
 
   // Get stored system info
   const getStoredSystemInfo = () => {
     if (isProd) {
-      const savedInfo = Cookies.get('systemInfo');
+      const savedInfo = Cookies.get("systemInfo");
       return savedInfo ? JSON.parse(savedInfo) : null;
     } else {
-      const savedInfo = localStorage.getItem('systemInfo');
+      const savedInfo = localStorage.getItem("systemInfo");
       return savedInfo ? JSON.parse(savedInfo) : null;
     }
   };
@@ -341,37 +344,45 @@ export default function Home() {
             </h2>
             <Tabs defaultValue="comparison" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="comparison">Requirements Comparison</TabsTrigger>
+                <TabsTrigger value="comparison">
+                  Requirements Comparison
+                </TabsTrigger>
                 <TabsTrigger value="my-system">My Computer Details</TabsTrigger>
               </TabsList>
               <TabsContent value="comparison">
                 <Card className="p-6">
                   <div className="space-y-6">
                     <div className="flex justify-end">
-                      <Select 
-                        value={comparisonModel?.id} 
-                        onValueChange={(id) => setComparisonModel(llmModels.find(m => m.id === id))}
+                      <Select
+                        value={comparisonModel?.id}
+                        onValueChange={(id) =>
+                          setComparisonModel(llmModels.find((m) => m.id === id))
+                        }
                       >
-                        <SelectTrigger className="w-[250px]">
+                        <SelectTrigger className="neo-input w-[280px]">
                           <SelectValue placeholder="Select model to compare" />
                         </SelectTrigger>
                         <SelectContent>
-                          {llmModels.map((model) => (
-                            <SelectItem key={model.id} value={model.id}>
-                              {model.name}
-                            </SelectItem>
-                          ))}
+                          <SelectGroup>
+                            <SelectLabel>Available Models</SelectLabel>
+                            {llmModels.map((model) => (
+                              <SelectItem key={model.id} value={model.id}>
+                                {model.name}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
                         </SelectContent>
                       </Select>
                     </div>
-                    
-                    {/* Add column titles */}
+
                     <div className="flex gap-8 mb-4">
                       <div className="flex-1">
                         <h3 className="text-lg font-semibold">Your System</h3>
                       </div>
                       <div className="flex-1">
-                        <h3 className="text-lg font-semibold">{comparisonModel?.name || 'Model'} Requirements</h3>
+                        <h3 className="text-lg font-semibold">
+                          {comparisonModel?.name || "Model"} Requirements
+                        </h3>
                       </div>
                     </div>
 
@@ -380,57 +391,91 @@ export default function Home() {
                         {
                           icon: <Cpu className="w-5 h-5 text-primary" />,
                           label: "CPU",
-                          value: systemInfo?.CPU || 'Unknown',
+                          value: systemInfo?.CPU || "Unknown",
                           isValid: systemInfo?.CPU !== "Unknown",
-                          requirement: comparisonModel?.requirements.CPU || 'N/A'
+                          requirement:
+                            comparisonModel?.requirements.CPU || "N/A",
                         },
                         {
-                          icon: <MemoryStick className="w-5 h-5 text-primary" />,
+                          icon: (
+                            <MemoryStick className="w-5 h-5 text-primary" />
+                          ),
                           label: "RAM",
-                          value: systemInfo?.RAM || 'Unknown',
-                          isValid: systemInfo?.RAM && comparisonModel?.requirements.RAM && 
-                                  compareRAMorVRAM(systemInfo.RAM, comparisonModel.requirements.RAM),
-                          requirement: comparisonModel?.requirements.RAM || 'N/A'
+                          value: systemInfo?.RAM || "Unknown",
+                          isValid:
+                            systemInfo?.RAM &&
+                            comparisonModel?.requirements.RAM &&
+                            compareRAMorVRAM(
+                              systemInfo.RAM,
+                              comparisonModel.requirements.RAM,
+                            ),
+                          requirement:
+                            comparisonModel?.requirements.RAM || "N/A",
                         },
                         {
                           icon: <MonitorCog className="w-5 h-5 text-primary" />,
                           label: "GPU",
-                          value: systemInfo?.GPU || 'Unknown',
+                          value: systemInfo?.GPU || "Unknown",
                           isValid: systemInfo?.GPU !== "Unknown",
-                          requirement: comparisonModel?.requirements.GPU || 'N/A'
+                          requirement:
+                            comparisonModel?.requirements.GPU || "N/A",
                         },
                         {
                           icon: <HardDrive className="w-5 h-5 text-primary" />,
                           label: "VRAM",
-                          value: systemInfo?.VRAM || 'Unknown',
-                          isValid: systemInfo?.VRAM && comparisonModel?.requirements.VRAM && 
-                                  compareRAMorVRAM(systemInfo.VRAM, comparisonModel.requirements.VRAM),
-                          requirement: comparisonModel?.requirements.VRAM || 'N/A'
+                          value: systemInfo?.VRAM || "Unknown",
+                          isValid:
+                            systemInfo?.VRAM &&
+                            comparisonModel?.requirements.VRAM &&
+                            compareRAMorVRAM(
+                              systemInfo.VRAM,
+                              comparisonModel.requirements.VRAM,
+                            ),
+                          requirement:
+                            comparisonModel?.requirements.VRAM || "N/A",
                         },
                         {
                           icon: <Monitor className="w-5 h-5 text-primary" />,
                           label: "OS",
-                          value: systemInfo?.OS || 'Unknown',
-                          isValid: systemInfo?.OS && comparisonModel?.requirements.OS && 
-                                  compareOS(systemInfo.OS, comparisonModel.requirements.OS),
-                          requirement: comparisonModel?.requirements.OS || 'N/A'
+                          value: systemInfo?.OS || "Unknown",
+                          isValid:
+                            systemInfo?.OS &&
+                            comparisonModel?.requirements.OS &&
+                            compareOS(
+                              systemInfo.OS,
+                              comparisonModel.requirements.OS,
+                            ),
+                          requirement:
+                            comparisonModel?.requirements.OS || "N/A",
                         },
                       ].map((spec, index) => (
                         <div key={spec.label} className="flex gap-8">
-                          <div className={`flex-1 flex items-center space-x-3 p-2 rounded-l ${
-                            spec.isValid ? "bg-green-500/10" : "bg-red-500/10"
-                          }`}>
+                          <div
+                            className={`flex-1 flex items-center space-x-3 p-2 rounded-l ${
+                              spec.isValid ? "bg-green-500/10" : "bg-red-500/10"
+                            }`}
+                          >
                             {spec.icon}
-                            <span className="text-muted-foreground">{spec.label}:</span>
-                            <span className={spec.isValid ? "text-green-500" : "text-red-500"}>
+                            <span className="text-muted-foreground">
+                              {spec.label}:
+                            </span>
+                            <span
+                              className={
+                                spec.isValid ? "text-green-500" : "text-red-500"
+                              }
+                            >
                               {spec.value}
                             </span>
                           </div>
-                          <div className={`flex-1 flex items-center space-x-3 p-2 rounded-r ${
-                            spec.isValid ? "bg-green-500/10" : "bg-red-500/10"
-                          }`}>
+                          <div
+                            className={`flex-1 flex items-center space-x-3 p-2 rounded-r ${
+                              spec.isValid ? "bg-green-500/10" : "bg-red-500/10"
+                            }`}
+                          >
                             {spec.icon}
-                            <span className="text-muted-foreground">{spec.label}:</span>
+                            <span className="text-muted-foreground">
+                              {spec.label}:
+                            </span>
                             <span>{spec.requirement}</span>
                           </div>
                         </div>
@@ -448,7 +493,9 @@ export default function Home() {
                           <Cpu className="w-6 h-6 text-primary mt-1" />
                           <div>
                             <h3 className="font-semibold">CPU</h3>
-                            <p className="text-lg break-words">{systemInfo.CPU}</p>
+                            <p className="text-lg break-words">
+                              {systemInfo.CPU}
+                            </p>
                           </div>
                         </div>
                         <div className="flex items-start space-x-4 p-4 rounded-lg bg-muted/30">
@@ -462,7 +509,9 @@ export default function Home() {
                           <MonitorCog className="w-6 h-6 text-primary mt-1" />
                           <div>
                             <h3 className="font-semibold">GPU</h3>
-                            <p className="text-lg break-words">{systemInfo.GPU}</p>
+                            <p className="text-lg break-words">
+                              {systemInfo.GPU}
+                            </p>
                           </div>
                         </div>
                         <div className="flex items-start space-x-4 p-4 rounded-lg bg-muted/30">
@@ -486,7 +535,8 @@ export default function Home() {
                     </div>
                   ) : (
                     <div className="text-center py-8 text-muted-foreground">
-                      No system information available. Please run the system check tool.
+                      No system information available. Please run the system
+                      check tool.
                     </div>
                   )}
                 </Card>

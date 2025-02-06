@@ -30,7 +30,10 @@ function compareOS(actual: string, required: string): boolean {
   return actual.toLowerCase() === required.toLowerCase();
 }
 
-export function SystemChecker({ systemInfo, comparisonModel }: SystemCheckerProps) {
+export function SystemChecker({
+  systemInfo,
+  comparisonModel,
+}: SystemCheckerProps) {
   if (!systemInfo) return null;
 
   return (

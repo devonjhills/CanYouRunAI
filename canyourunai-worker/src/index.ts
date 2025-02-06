@@ -74,14 +74,13 @@ export default {
 
 		// Handle GET request for system info
 		if (request.method === 'GET' && url.pathname === '/api/system-check') {
-			const systemInfo = await env.SYSTEM_INFO.get('latest', 'json') as SystemInfo | null;
-			const isRecent = systemInfo?.timestamp && 
-				(Date.now() - systemInfo.timestamp) < 30000;  // 30 seconds
+			const systemInfo = (await env.SYSTEM_INFO.get('latest', 'json')) as SystemInfo | null;
+			const isRecent = systemInfo?.timestamp && Date.now() - systemInfo.timestamp < 30000; // 30 seconds
 
 			return new Response(
 				JSON.stringify({
 					success: true,
-					systemInfo: isRecent ? systemInfo : null,  // Only return if recent
+					systemInfo: isRecent ? systemInfo : null, // Only return if recent
 				}),
 				{
 					headers: {
