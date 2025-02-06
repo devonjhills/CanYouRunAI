@@ -8,7 +8,7 @@ import { Footer } from "./components/Footer";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "CanYouRunAI.com - Check Your System for AI Models",
+  title: "CanYouRunAI.com - Check if your system can run local LLMs",
   description:
     "Check if your system can run local Large Language Models like LLaMA and GPT4All",
 };
