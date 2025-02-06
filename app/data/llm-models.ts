@@ -1,81 +1,66 @@
+export interface LLMRequirements {
+  CPU: string;
+  RAM: string;
+  GPU: string;
+  VRAM: string;
+  OS: string;
+}
+
 export interface LLMModel {
   id: string;
   name: string;
-  category: "popular" | "cpu-only" | "high-end";
-  requirements: {
-    cpu: string;
-    ram: string;
-    gpu: string;
-    storage: string;
-    os: string;
-    notes: string;
-  };
+  description: string;
+  requirements: LLMRequirements;
 }
 
 export const llmModels: LLMModel[] = [
   {
     id: "llama2-7b",
-    name: "LLaMA 2 (7B)",
-    category: "popular",
+    name: "Llama 2 (7B)",
+    description: "Meta's 7B parameter model, good for basic tasks",
     requirements: {
-      cpu: "Modern multi-core CPU (AMD Ryzen 5/Intel i5 or better)",
-      ram: "16GB minimum, 32GB recommended",
-      gpu: "NVIDIA GPU with 8GB VRAM (RTX 3060 or better)",
-      storage: "20GB free space",
-      os: "Windows 10/11, Linux, macOS",
-      notes: "Quantized 4-bit version available for lower requirements",
+      CPU: "Intel Core i5/AMD Ryzen 5 or better",
+      RAM: "16.0 GB",
+      GPU: "NVIDIA GTX 1060 6GB or better",
+      VRAM: "6.0 GB",
+      OS: "windows", // Matches runtime.GOOS format
     },
   },
   {
-    id: "gpt4all-j",
-    name: "GPT4All-J",
-    category: "cpu-only",
+    id: "llama2-13b",
+    name: "Llama 2 (13B)",
+    description: "Meta's 13B parameter model, better reasoning capabilities",
     requirements: {
-      cpu: "x86 64-bit CPU (AMD/Intel)",
-      ram: "8GB minimum",
-      gpu: "Not required - CPU only",
-      storage: "10GB free space",
-      os: "Windows 10/11, Linux, macOS",
-      notes: "Optimized for CPU inference",
+      CPU: "Intel Core i7/AMD Ryzen 7 or better",
+      RAM: "32.0 GB",
+      GPU: "NVIDIA RTX 2060 8GB or better",
+      VRAM: "8.0 GB",
+      OS: "windows",
     },
   },
   {
-    id: "falcon-7b",
-    name: "Falcon (7B)",
-    category: "popular",
+    id: "llama2-70b",
+    name: "Llama 2 (70B)",
+    description:
+      "Meta's largest model, best performance but resource intensive",
     requirements: {
-      cpu: "AMD Ryzen 7/Intel i7 or better",
-      ram: "32GB recommended",
-      gpu: "NVIDIA GPU with 12GB VRAM (RTX 3060 Ti or better)",
-      storage: "25GB free space",
-      os: "Windows 10/11, Linux",
-      notes: "Supports 4-bit quantization for reduced requirements",
+      CPU: "Intel Core i9/AMD Ryzen 9 or better",
+      RAM: "64.0 GB",
+      GPU: "NVIDIA RTX 3080 or better",
+      VRAM: "16.0 GB",
+      OS: "windows",
     },
   },
   {
-    id: "mistral-7b",
-    name: "Mistral 7B",
-    category: "popular",
+    id: "mixtral-8x7b",
+    name: "Mixtral 8x7B",
+    description: "Mistral's mixture of experts model, high performance",
     requirements: {
-      cpu: "Modern 6-core CPU",
-      ram: "16GB minimum",
-      gpu: "NVIDIA GPU with 8GB VRAM",
-      storage: "15GB free space",
-      os: "Windows 10/11, Linux, macOS",
-      notes: "Excellent performance with 4-bit quantization",
-    },
-  },
-  {
-    id: "phi-3",
-    name: "Phi-3",
-    category: "cpu-only",
-    requirements: {
-      cpu: "Modern 4-core CPU",
-      ram: "8GB minimum",
-      gpu: "Optional - Can run on CPU only",
-      storage: "5GB free space",
-      os: "Windows 10/11, Linux, macOS",
-      notes: "Highly efficient, optimized for CPU usage",
+      CPU: "Intel Core i9/AMD Ryzen 9 or better",
+      RAM: "48.0 GB",
+      GPU: "NVIDIA RTX 3070 or better",
+      VRAM: "12.0 GB",
+      OS: "windows",
     },
   },
 ];

@@ -8,20 +8,18 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
 	"os/exec"
 	"runtime"
 	"strings"
-	"io"
-
-	"github.com/google/uuid"
 )
 
 // SystemInfo holds the system details.
 type SystemInfo struct {
-	SessionID string `json:"sessionId"`
+	SessionId string `json:"sessionId"`
 	OS        string `json:"OS"`
 	CPU       string `json:"CPU"`
 	RAM       string `json:"RAM"`
@@ -106,56 +104,37 @@ func getGPUInfo() (string, string) {
 }
 
 func main() {
-	// Use a command-line flag to determine the environment.
-	// For example, run with "-dev" for development.
-	isDev := flag.Bool("dev", false, "set to true to use development endpoints")
-	sessionIDPtr := flag.String("session", "", "session ID for the system check")
+	
 	flag.Parse()
 
-	// Set the base domain based on the environment.
-	var baseDomain string
-	if *isDev {
-		baseDomain = "http://localhost:3000"  // Development server (if any)
-	} else {
-		baseDomain = "https://canyourunai-worker.digitalveilmedia.workers.dev"  // Cloudflare Worker URL
-	}	
+	// Set the worker domain based on environment
+	workerDomain := "https://canyourunai-worker.digitalveilmedia.workers.dev"
 
-	// Generate a new session ID if not provided.
-	sessionID := *sessionIDPtr
-	if sessionID == "" {
-		sessionID = uuid.New().String()
-	}
-
-	// Gather system information.
+	// Gather system information first
 	osInfo := runtime.GOOS
 	cpu := getCPUInfo()
 	ram := getRAMInfo()
 	gpu, vram := getGPUInfo()
 
+	fmt.Printf("\nSystem Information:\n")
+	fmt.Printf("OS: %s\nCPU: %s\nRAM: %s\nGPU: %s\nVRAM: %s\n",
+		osInfo, cpu, ram, gpu, vram)
+
 	sysInfo := SystemInfo{
-		SessionID: sessionID,
-		OS:        osInfo,
-		CPU:       cpu,
-		RAM:       ram,
-		GPU:       gpu,
-		VRAM:      vram,
+		OS:    osInfo,
+		CPU:   cpu,
+		RAM:   ram,
+		GPU:   gpu,
+		VRAM:  vram,
 	}
 
-	// Display the gathered system information.
-	fmt.Println("System Information:")
-	fmt.Printf("Session ID: %s\nOS: %s\nCPU: %s\nRAM: %s\nGPU: %s\nVRAM: %s\n",
-		sysInfo.SessionID, sysInfo.OS, sysInfo.CPU, sysInfo.RAM, sysInfo.GPU, sysInfo.VRAM)
-
-	// Prepare the JSON payload.
+	// Send data to API
 	payload, err := json.Marshal(sysInfo)
 	if err != nil {
 		log.Fatalf("Failed to marshal system info: %v", err)
 	}
 
-	// Build the API endpoint URL.
-	apiURL := fmt.Sprintf("%s/api/system-check", baseDomain)
-
-	// Send the POST request with system information.
+	apiURL := fmt.Sprintf("%s/api/system-check", workerDomain)
 	req, err := http.NewRequest("POST", apiURL, bytes.NewBuffer(payload))
 	if err != nil {
 		log.Fatalf("Failed to create request: %v", err)
@@ -169,59 +148,23 @@ func main() {
 	}
 	defer resp.Body.Close()
 
-	fmt.Println("Session id:", sessionID)
-
-	// Check if the response is a success (HTTP 200 OK)
 	if resp.StatusCode != http.StatusOK {
 		log.Printf("Received non-200 response: %d %s", resp.StatusCode, resp.Status)
-		
-		// Read and print the response body to help with debugging
 		bodyBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
 			log.Fatalf("Failed to read response body: %v", err)
 		}
 		fmt.Println("Response Body (non-200):", string(bodyBytes))
-		return
-	}
-
-	// Decode and display the server response.
-	var respData map[string]interface{}
-	if err := json.NewDecoder(resp.Body).Decode(&respData); err != nil {
-		log.Printf("Error decoding response: %v", err)
-
-		// Read and print the response body to help with debugging
+	} else {
 		bodyBytes, err := io.ReadAll(resp.Body)
 		if err != nil {
-			log.Fatalf("Failed to read response body: %v", err)
+			log.Printf("Failed to read response body: %v", err)
+		} else {
+			fmt.Println("Response Body (200):", string(bodyBytes))
 		}
-		fmt.Println("Response Body (error):", string(bodyBytes))
-		return
+		fmt.Println("\nSystem information sent successfully!")
 	}
 
-	fmt.Println("Server response:", respData)
-
-	// Construct the URL to open in the browser
-	openURL := fmt.Sprintf("%s/api/system-check?session=%s", baseDomain, sessionID)
-
-	// Open the URL in the default browser
-	var openCmd *exec.Cmd
-	switch runtime.GOOS {
-	case "windows":
-		openCmd = exec.Command("rundll32", "url.dll,FileProtocolHandler", openURL)
-	case "darwin":
-		openCmd = exec.Command("open", openURL)
-	case "linux":
-		openCmd = exec.Command("xdg-open", openURL)
-	default:
-		fmt.Printf("Cannot open browser. OS not supported: %s\n", runtime.GOOS)
-		return
-	}
-	err = openCmd.Start()
-    if err != nil {
-        log.Printf("Error opening browser: %v", err)
-    }
-
-	// Keep the console open until a key is pressed (optional).
-	fmt.Println("Press ENTER to exit...")
+	fmt.Println("\nPress ENTER to exit...")
 	_, _ = os.Stdin.Read(make([]byte, 1))
 }
