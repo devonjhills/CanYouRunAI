@@ -55,6 +55,10 @@ interface RequestBody {
   systemSpecs: SystemSpecs;
 }
 
+interface ModelSummary {
+  description: string | null;
+}
+
 // Allowed origins and helper functions for CORS
 const ALLOWED_ORIGINS = [
   "http://localhost:3000",
@@ -68,7 +72,6 @@ function getOrigin(request: Request): string {
 function handleCors(request: Request): Response | null {
   const origin = getOrigin(request);
   const isAllowedOrigin = ALLOWED_ORIGINS.includes(origin);
-  // For preflight OPTIONS requests, always return the proper CORS headers.
   if (request.method === "OPTIONS") {
     return new Response(null, {
       headers: {
@@ -82,15 +85,13 @@ function handleCors(request: Request): Response | null {
       },
     });
   }
-  // For non-OPTIONS requests, do not reject outright; let the request proceed.
   return null;
 }
 
-// Define your quantization levels (replace with additional levels if needed)
+// Define your quantization levels
 const QUANTIZATION_LEVELS: QuantizationLevel[] = [
   { name: "q8", bpw: 8 },
   { name: "q4", bpw: 4 },
-  // Add other levels as needed
 ];
 
 // Entry point: listen for incoming requests
@@ -99,7 +100,6 @@ addEventListener("fetch", (event: FetchEvent) => {
 });
 
 async function handleRequest(request: Request): Promise<Response> {
-  // Check CORS first
   const corsResponse = handleCors(request);
   if (corsResponse) return corsResponse;
 
@@ -124,27 +124,51 @@ async function handleRequest(request: Request): Promise<Response> {
           {
             status: 400,
             headers: corsHeaders,
-          },
+          }
         );
       }
 
-      console.log("Received request for model:", modelId);
+      // Try to fetch the config first to check for access restrictions
+      const configResponse = await fetch(
+        `https://huggingface.co/${modelId}/resolve/main/config.json`
+      );
 
-      // Fetch model configuration from Hugging Face
-      const modelConfig = await fetchModelConfig(modelId);
-      if (!modelConfig) {
+      if (configResponse.status === 401 || configResponse.status === 403) {
+        const text = await configResponse.text();
         return new Response(
-          JSON.stringify({ error: "Failed to fetch model config" }),
-          { status: 400, headers: corsHeaders },
+          JSON.stringify({
+            error: text || "Access to this model is restricted",
+          }),
+          {
+            status: 403,
+            headers: corsHeaders,
+          }
         );
       }
 
-      // Estimate the model's parameter count using the config.
-      // Here we assume that if vocab_size is provided, it will be used.
-      const modelParams = estimateModelParams(modelConfig);
-      console.log("Estimated model parameters:", modelParams);
+      // Continue with the rest of the analysis...
+      const [modelConfig, modelParams, modelSummary] = await Promise.all([
+        configResponse.ok ? configResponse.json() : null,
+        fetchModelParams(modelId),
+        fetchModelSummary(modelId),
+      ]);
 
-      // Compute quantization results for each level
+      if (!modelConfig || !isValidConfig(modelConfig)) {
+        return new Response(
+          JSON.stringify({
+            error: "Invalid or incomplete model configuration",
+          }),
+          { status: 400, headers: corsHeaders }
+        );
+      }
+
+      if (!modelParams) {
+        return new Response(
+          JSON.stringify({ error: "Failed to determine model parameters" }),
+          { status: 400, headers: corsHeaders }
+        );
+      }
+
       const quantizationResults: Record<string, ModelAnalysis> = {};
       for (const { name, bpw } of QUANTIZATION_LEVELS) {
         quantizationResults[name] = analyzeQuantization(
@@ -154,19 +178,19 @@ async function handleRequest(request: Request): Promise<Response> {
           systemSpecs.totalRam,
           bpw,
           systemSpecs.ramBandwidth,
-          modelConfig,
+          modelConfig
         );
       }
 
-      // Return the results as JSON, including CORS headers.
       return new Response(
         JSON.stringify({
           modelConfig,
           modelParams,
+          modelSummary,
           systemSpecs,
           quantizationResults,
         }),
-        { headers: corsHeaders },
+        { headers: corsHeaders }
       );
     } catch (error: unknown) {
       console.error("Error processing quantization:", error);
@@ -182,13 +206,10 @@ async function handleRequest(request: Request): Promise<Response> {
   return new Response("Not Found", { status: 404, headers: corsHeaders });
 }
 
-// --- Helper functions ---
-
-// Fetch model configuration from Hugging Face
 async function fetchModelConfig(modelId: string): Promise<ModelConfig | null> {
   try {
     const response = await fetch(
-      `https://huggingface.co/${modelId}/resolve/main/config.json`,
+      `https://huggingface.co/${modelId}/resolve/main/config.json`
     );
     if (!response.ok) throw new Error("Failed to fetch config");
     return await response.json();
@@ -198,22 +219,125 @@ async function fetchModelConfig(modelId: string): Promise<ModelConfig | null> {
   }
 }
 
-// Estimate total model parameters based on configuration.
-// This is a rough approximation that adds embedding parameters and per-layer parameters.
+async function fetchModelParams(modelId: string): Promise<number | null> {
+  try {
+    // try to parse from README
+    const readmeResponse = await fetch(
+      `https://huggingface.co/${modelId}/raw/main/README.md`
+    );
+
+    if (readmeResponse.ok) {
+      const text = await readmeResponse.text();
+
+      // Debug logs
+      console.debug("[DEBUG] Model ID:", modelId);
+      console.debug("[DEBUG] README Content:", text.substring(0, 500)); // First 500 chars
+
+      // Look for common parameter notations
+      const paramPatterns = [
+        /Number of Parameters:\s*(\d+\.?\d*)\s*[Bb]/i,
+        /(\d+\.?\d*)[\s-]?[Bb](\s|illion|\s?parameters|$)/,
+        /(\d+\.?\d*)\s*[Bb]illion\s+parameters/i,
+        /parameters:\s*(\d+\.?\d*)\s*[Bb]/i,
+        /(\d+\.?\d*)\s*[Bb]illion\s+param/i,
+        /(\d+\.?\d*)[Bb]\s+model/i,
+      ];
+
+      for (const pattern of paramPatterns) {
+        const match = text.match(pattern);
+        if (match && match[1]) {
+          console.debug(
+            "[DEBUG] Found parameter match:",
+            match[1],
+            "with pattern:",
+            pattern
+          );
+          const exactParams = parseFloat(match[1]);
+          return exactParams * 1e9;
+        }
+      }
+
+      console.debug("[DEBUG] No parameter match found in patterns");
+    }
+
+    // 3. Fall back to config-based estimation
+    const config = await fetchModelConfig(modelId);
+    if (config) {
+      return estimateModelParams(config);
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Error fetching model parameters:", error);
+    return null;
+  }
+}
+
 function estimateModelParams(config: ModelConfig): number {
   const vocabSize = config.vocab_size ?? 0;
   const embeddingParams = vocabSize * config.hidden_size;
-  // Rough estimate: each transformer layer roughly contributes ~6 * (hidden_size^2) parameters.
   const layerParams = config.num_hidden_layers * 6 * config.hidden_size ** 2;
   return embeddingParams + layerParams;
 }
 
-// Calculate maximum tokens based on available memory and model config
+async function fetchModelSummary(modelId: string): Promise<ModelSummary> {
+  try {
+    const readmeResponse = await fetch(
+      `https://huggingface.co/${modelId}/raw/main/README.md`
+    );
+
+    if (!readmeResponse.ok) {
+      return { description: null };
+    }
+
+    const text = await readmeResponse.text();
+
+    const sections = [
+      { name: "Introduction", pattern: /##?\s*(?:\d+\.)?\s*Introduction/i },
+      { name: "Description", pattern: /##?\s*(?:\d+\.)?\s*Description/i },
+      { name: "Overview", pattern: /##?\s*(?:\d+\.)?\s*Overview/i },
+      { name: "About", pattern: /##?\s*(?:\d+\.)?\s*About/i },
+      { name: "TL;DR", pattern: /##?\s*(?:\d+\.)?\s*TL;DR/i },
+      { name: "Model Summary", pattern: /##?\s*(?:\d+\.)?\s*Model\s+Summary/i },
+    ];
+
+    let description = "";
+    let source = "";
+
+    // Try to find any section that matches our patterns
+    let foundSection = false;
+    for (const section of sections) {
+      const match = text.match(
+        new RegExp(`${section.pattern.source}([^#]+)`, "i")
+      );
+      if (match?.[1]) {
+        foundSection = true;
+        description = match[1].trim();
+        source = section.name;
+        break;
+      }
+    }
+
+    // If no sections found, return empty ModelSummary instead of null
+    if (!foundSection) {
+      return { description: null };
+    }
+
+    return {
+      description: cleanupMarkdown(description),
+    };
+  } catch (error) {
+    console.error("Error fetching model summary:", error);
+    return { description: null };
+  }
+}
+
 function calculateMaxTokens(
   availableMemoryGb: number,
-  config: ModelConfig,
+  config: ModelConfig
 ): number {
-  const bytesPerElement = config.torch_dtype === "float32" ? 4 : 2;
+  const bytesPerElement =
+    (config.torch_dtype ?? "float16") === "float32" ? 4 : 2;
   const memoryPerToken =
     config.num_hidden_layers *
     config.num_key_value_heads *
@@ -225,7 +349,17 @@ function calculateMaxTokens(
   return Math.min(maxTokens, config.max_position_embeddings);
 }
 
-// Analyze quantization parameters and estimate performance
+function isValidConfig(config: any): config is ModelConfig {
+  return (
+    config &&
+    typeof config.hidden_size === "number" &&
+    typeof config.max_position_embeddings === "number" &&
+    typeof config.num_attention_heads === "number" &&
+    typeof config.num_hidden_layers === "number" &&
+    typeof config.num_key_value_heads === "number"
+  );
+}
+
 function analyzeQuantization(
   paramsB: number,
   vramGb: number,
@@ -233,9 +367,9 @@ function analyzeQuantization(
   ramGb: number,
   bpw: number,
   ramBandwidth: number,
-  config: ModelConfig,
+  config: ModelConfig
 ): ModelAnalysis {
-  const requiredMem = (paramsB * bpw) / 8 / 1e9; // Memory in GB
+  const requiredMem = (paramsB * bpw) / 8 / 1e9;
   let ctx = 0;
 
   if (requiredMem <= vramGb) {
@@ -296,4 +430,24 @@ function analyzeQuantization(
     tokensPerSecond: null,
     maxContext: null,
   };
+}
+
+function cleanupMarkdown(text: string): string {
+  return text
+    .trim()
+    // First handle lists and paragraphs
+    .replace(/^- (.+)$/gm, '<li>$1</li>') // List items
+    .replace(/(?:^<li>.*<\/li>\n?)+/gm, '<ul class="space-y-0">$&</ul>') // Wrap lists with no spacing
+    .split(/\n{2,}/).map(p => `<p>${p}</p>`).join('\n') // Paragraphs
+    // Then handle inline formatting
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>') // Bold
+    .replace(/\*([^*]+)\*/g, '<em>$1</em>') // Italic
+    .replace(/\n(?!<\/?[pu])/g, '<br />') // Line breaks (not before/after p or ul tags)
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>') // Links
+    // Clean up any double-wrapping of paragraphs
+    .replace(/<p><p>/g, '<p>')
+    .replace(/<\/p><\/p>/g, '</p>')
+    .replace(/<p>\s*<br \/>\s*<\/p>/g, '') // Remove empty paragraphs
+    // If description is too long, truncate it
+    .slice(0, 2000);
 }

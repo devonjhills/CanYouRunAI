@@ -1,7 +1,6 @@
 "use client";
 
 import { SystemRequirements } from "./components/SystemRequirements";
-import { SystemChecker } from "./components/SystemChecker";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -9,24 +8,15 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-  SelectGroup,
-  SelectLabel,
 } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { llmModels } from "@/app/data/llm-models";
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import { LLMModel } from "@/app/data/llm-models";
-import { SystemInfo } from "@/app/components/SystemChecker";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SystemInfo, SystemChecker } from "@/app/components/SystemChecker";
 import Cookies from "js-cookie";
-import { Cpu, MemoryStick, MonitorCog, HardDrive, Monitor } from "lucide-react";
-import {
-  QUANTIZATION_LEVELS,
-  type SystemSpecs,
-  type ModelAnalysis,
-  type AdvancedAnalysis,
-} from "./data/llm-models";
+import { type SystemSpecs, type AdvancedAnalysis } from "./data/llm-models";
+import { AdvancedAnalysisSection } from "./components/AdvancedAnalysis";
 
 const isProd = process.env.NODE_ENV === "production";
 
@@ -48,10 +38,9 @@ export default function Home() {
   );
   const [analysis, setAnalysis] = useState<AdvancedAnalysis | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   // This state now holds the modelId entered in the advanced tab.
   const [modelId, setModelId] = useState("");
-
-  const searchParams = useSearchParams();
 
   useEffect(() => {
     // Initial check on page load
@@ -259,19 +248,32 @@ export default function Home() {
 
   const runAdvancedCheck = async () => {
     setLoading(true);
+    setError(null);
     try {
-      // Build systemSpecs with fallback values if systemInfo is undefined
+      // Check if we have valid system info or need to use placeholders
+      const usingPlaceholders =
+        !systemInfo ||
+        systemInfo.RAM === "Unknown" ||
+        systemInfo.VRAM === "Unknown" ||
+        systemInfo.GPU === "Unknown";
+
+      // Build systemSpecs with fallback values if systemInfo is undefined or contains "Unknown"
       const specs: SystemSpecs = {
-        totalRam: systemInfo?.RAM
-          ? parseFloat(systemInfo.RAM.split(" ")[0])
-          : 16,
+        totalRam:
+          systemInfo?.RAM && systemInfo.RAM !== "Unknown"
+            ? parseFloat(systemInfo.RAM.split(" ")[0])
+            : 16,
         ramBandwidth: 48, // Typical DDR4 bandwidth in GB/s
-        vramPerGpu: systemInfo?.VRAM
-          ? parseFloat(systemInfo.VRAM.split(" ")[0])
-          : 8,
+        vramPerGpu:
+          systemInfo?.VRAM && systemInfo.VRAM !== "Unknown"
+            ? parseFloat(systemInfo.VRAM.split(" ")[0])
+            : 8,
         numGpus: 1,
         gpuBandwidth: 300, // Typical mid-range GPU bandwidth in GB/s
-        gpuBrand: systemInfo?.GPU || "NVIDIA GeForce RTX 3060",
+        gpuBrand:
+          systemInfo?.GPU && systemInfo.GPU !== "Unknown"
+            ? systemInfo.GPU
+            : "NVIDIA GeForce RTX 3060",
       };
 
       // Use the modelId from the text input (advanced tab), not selectedModel.
@@ -283,17 +285,20 @@ export default function Home() {
         credentials: "include",
       });
 
+      const data = await response.json() as { error?: string } & AdvancedAnalysis;
+      
       if (!response.ok) {
-        const errorData = (await response.json()) as { error?: string };
-        throw new Error(errorData.error || "Failed to run advanced check");
+        setError(data.error || 'Failed to analyze model');
+        return;
       }
 
-      const data = await response.json();
-      setAnalysis(data as AdvancedAnalysis);
+      setAnalysis(data);
     } catch (error) {
       console.error("Failed to run advanced check:", error);
+      setError(error instanceof Error ? error.message : 'An unexpected error occurred');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -359,391 +364,24 @@ export default function Home() {
         <div className="max-w-6xl mx-auto space-y-16">
           {/* System Info */}
           <div className="space-y-6" id="system-requirements">
-            <h2 className="text-3xl font-bold text-center mb-8">
-              System Requirements Check
-            </h2>
-            <Tabs defaultValue="comparison" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="comparison">
-                  Requirements Comparison
-                </TabsTrigger>
-                <TabsTrigger value="my-system">My Computer Details</TabsTrigger>
-                <TabsTrigger value="advanced">Advanced Analysis</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="comparison">
-                <Card className="p-6">
-                  <div className="space-y-6">
-                    <div className="flex justify-end">
-                      <Select
-                        value={comparisonModel?.id}
-                        onValueChange={(id) =>
-                          setComparisonModel(llmModels.find((m) => m.id === id))
-                        }
-                      >
-                        <SelectTrigger className="neo-input w-[280px]">
-                          <SelectValue placeholder="Select model to compare" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            <SelectLabel>Available Models</SelectLabel>
-                            {llmModels.map((model) => (
-                              <SelectItem key={model.id} value={model.id}>
-                                {model.name}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="flex gap-8 mb-4">
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold">Your System</h3>
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold">
-                          {comparisonModel?.name || "Model"} Requirements
-                        </h3>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      {[
-                        {
-                          icon: <Cpu className="w-5 h-5 text-primary" />,
-                          label: "CPU",
-                          value: systemInfo?.CPU || "Unknown",
-                          isValid: systemInfo?.CPU !== "Unknown",
-                          requirement:
-                            comparisonModel?.requirements.CPU || "N/A",
-                        },
-                        {
-                          icon: (
-                            <MemoryStick className="w-5 h-5 text-primary" />
-                          ),
-                          label: "RAM",
-                          value: systemInfo?.RAM || "Unknown",
-                          isValid:
-                            systemInfo?.RAM &&
-                            comparisonModel?.requirements.RAM &&
-                            compareRAMorVRAM(
-                              systemInfo.RAM,
-                              comparisonModel.requirements.RAM,
-                            ),
-                          requirement:
-                            comparisonModel?.requirements.RAM || "N/A",
-                        },
-                        {
-                          icon: <MonitorCog className="w-5 h-5 text-primary" />,
-                          label: "GPU",
-                          value: systemInfo?.GPU || "Unknown",
-                          isValid: systemInfo?.GPU !== "Unknown",
-                          requirement:
-                            comparisonModel?.requirements.GPU || "N/A",
-                        },
-                        {
-                          icon: <HardDrive className="w-5 h-5 text-primary" />,
-                          label: "VRAM",
-                          value: systemInfo?.VRAM || "Unknown",
-                          isValid:
-                            systemInfo?.VRAM &&
-                            comparisonModel?.requirements.VRAM &&
-                            compareRAMorVRAM(
-                              systemInfo.VRAM,
-                              comparisonModel.requirements.VRAM,
-                            ),
-                          requirement:
-                            comparisonModel?.requirements.VRAM || "N/A",
-                        },
-                        {
-                          icon: <Monitor className="w-5 h-5 text-primary" />,
-                          label: "OS",
-                          value: systemInfo?.OS || "Unknown",
-                          isValid:
-                            systemInfo?.OS &&
-                            comparisonModel?.requirements.OS &&
-                            compareOS(
-                              systemInfo.OS,
-                              comparisonModel.requirements.OS,
-                            ),
-                          requirement:
-                            comparisonModel?.requirements.OS || "N/A",
-                        },
-                      ].map((spec, index) => (
-                        <div key={spec.label} className="flex gap-8">
-                          <div
-                            className={`flex-1 flex items-center space-x-3 p-2 rounded-l ${
-                              spec.isValid ? "bg-green-500/10" : "bg-red-500/10"
-                            }`}
-                          >
-                            {spec.icon}
-                            <span className="text-muted-foreground">
-                              {spec.label}:
-                            </span>
-                            <span
-                              className={
-                                spec.isValid ? "text-green-500" : "text-red-500"
-                              }
-                            >
-                              {spec.value}
-                            </span>
-                          </div>
-                          <div
-                            className={`flex-1 flex items-center space-x-3 p-2 rounded-r ${
-                              spec.isValid ? "bg-green-500/10" : "bg-red-500/10"
-                            }`}
-                          >
-                            {spec.icon}
-                            <span className="text-muted-foreground">
-                              {spec.label}:
-                            </span>
-                            <span>{spec.requirement}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="my-system">
-                <Card className="p-6">
-                  {systemInfo ? (
-                    <div className="space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="flex items-start space-x-4 p-4 rounded-lg bg-muted/30">
-                          <Cpu className="w-6 h-6 text-primary mt-1" />
-                          <div>
-                            <h3 className="font-semibold">CPU</h3>
-                            <p className="text-lg break-words">
-                              {systemInfo.CPU}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-start space-x-4 p-4 rounded-lg bg-muted/30">
-                          <MemoryStick className="w-6 h-6 text-primary mt-1" />
-                          <div>
-                            <h3 className="font-semibold">RAM</h3>
-                            <p className="text-lg">{systemInfo.RAM}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-start space-x-4 p-4 rounded-lg bg-muted/30">
-                          <MonitorCog className="w-6 h-6 text-primary mt-1" />
-                          <div>
-                            <h3 className="font-semibold">GPU</h3>
-                            <p className="text-lg break-words">
-                              {systemInfo.GPU}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-start space-x-4 p-4 rounded-lg bg-muted/30">
-                          <HardDrive className="w-6 h-6 text-primary mt-1" />
-                          <div>
-                            <h3 className="font-semibold">VRAM</h3>
-                            <p className="text-lg">{systemInfo.VRAM}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-start space-x-4 p-4 rounded-lg bg-muted/30">
-                          <Monitor className="w-6 h-6 text-primary mt-1" />
-                          <div>
-                            <h3 className="font-semibold">Operating System</h3>
-                            <p className="text-lg">{systemInfo.OS}</p>
-                          </div>
-                        </div>
-                      </div>
-                      <p className="text-sm text-muted-foreground text-center">
-                        Last checked: {new Date().toLocaleString()}
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      No system information available. Please run the system
-                      check tool.
-                    </div>
-                  )}
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="advanced">
-                <Card className="p-6">
-                  <div className="space-y-6">
-                    <div className="flex flex-col space-y-4">
-                      <label className="text-sm font-medium">
-                        Hugging Face Model ID
-                      </label>
-                      <div className="flex gap-4">
-                        <input
-                          type="text"
-                          onChange={(e) => setModelId(e.target.value)}
-                          placeholder="e.g., microsoft/phi-2"
-                          className="neo-input flex-1 p-2 text-sm"
-                        />
-                        <Button
-                          onClick={runAdvancedCheck}
-                          disabled={loading || !modelId}
-                          className="neo-button"
-                        >
-                          {loading ? "Analyzing..." : "Analyze Model"}
-                        </Button>
-                      </div>
-                    </div>
-
-                    {analysis && analysis.systemSpecs && (
-                      <div className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div className="space-y-4 p-4 rounded-lg bg-muted/30">
-                            <h3 className="font-semibold text-lg">
-                              System Specs
-                            </h3>
-                            <div className="space-y-2">
-                              <p className="flex justify-between">
-                                <span className="text-muted-foreground">
-                                  RAM:
-                                </span>
-                                <span>
-                                  {analysis.systemSpecs.totalRam?.toFixed(1) ||
-                                    "N/A"}{" "}
-                                  GB
-                                </span>
-                              </p>
-                              <p className="flex justify-between">
-                                <span className="text-muted-foreground">
-                                  RAM Bandwidth:
-                                </span>
-                                <span>
-                                  {analysis.systemSpecs.ramBandwidth?.toFixed(
-                                    1,
-                                  ) || "N/A"}{" "}
-                                  GB/s
-                                </span>
-                              </p>
-                              <p className="flex justify-between">
-                                <span className="text-muted-foreground">
-                                  GPU:
-                                </span>
-                                <span>
-                                  {analysis.systemSpecs.numGpus}x{" "}
-                                  {analysis.systemSpecs.gpuBrand || "N/A"}
-                                </span>
-                              </p>
-                              <p className="flex justify-between">
-                                <span className="text-muted-foreground">
-                                  VRAM:
-                                </span>
-                                <span>
-                                  {analysis.systemSpecs.vramPerGpu?.toFixed(
-                                    1,
-                                  ) || "N/A"}{" "}
-                                  GB per GPU
-                                </span>
-                              </p>
-                              <p className="flex justify-between">
-                                <span className="text-muted-foreground">
-                                  GPU Bandwidth:
-                                </span>
-                                <span>
-                                  {analysis.systemSpecs.gpuBandwidth?.toFixed(
-                                    1,
-                                  ) || "N/A"}{" "}
-                                  GB/s
-                                </span>
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="space-y-4 p-4 rounded-lg bg-muted/30">
-                            <h3 className="font-semibold text-lg">
-                              Model Info
-                            </h3>
-                            <p className="flex justify-between">
-                              <span className="text-muted-foreground">
-                                Parameters:
-                              </span>
-                              <span>
-                                {analysis.modelParams
-                                  ? (analysis.modelParams / 1e9).toFixed(1)
-                                  : "N/A"}
-                                B
-                              </span>
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {Object.entries(
-                            analysis.quantizationResults || {},
-                          ).map(([quant, data]) => (
-                            <Card
-                              key={quant}
-                              className="p-4 neo-brutalist-shadow"
-                            >
-                              <h4 className="font-bold text-lg mb-3 text-primary">
-                                {quant.toUpperCase()}
-                              </h4>
-                              <div className="space-y-2 text-sm">
-                                <p className="flex justify-between">
-                                  <span className="text-muted-foreground">
-                                    Run Type:
-                                  </span>
-                                  <span>{data.runType || "N/A"}</span>
-                                </p>
-                                <p className="flex justify-between">
-                                  <span className="text-muted-foreground">
-                                    Memory Required:
-                                  </span>
-                                  <span>
-                                    {data.memoryRequired?.toFixed(2) || "N/A"}{" "}
-                                    GB
-                                  </span>
-                                </p>
-                                {data.offloadPercentage > 0 && (
-                                  <p className="flex justify-between">
-                                    <span className="text-muted-foreground">
-                                      GPU Usage:
-                                    </span>
-                                    <span>
-                                      {(100 - data.offloadPercentage)?.toFixed(
-                                        1,
-                                      ) || "N/A"}
-                                      %
-                                    </span>
-                                  </p>
-                                )}
-                                {data.tokensPerSecond && (
-                                  <p className="flex justify-between">
-                                    <span className="text-muted-foreground">
-                                      Est. Speed:
-                                    </span>
-                                    <span>
-                                      {data.tokensPerSecond.toFixed(2) || "N/A"}{" "}
-                                      tk/s
-                                    </span>
-                                  </p>
-                                )}
-                                {data.maxContext && (
-                                  <p className="flex justify-between">
-                                    <span className="text-muted-foreground">
-                                      Max Context:
-                                    </span>
-                                    <span>
-                                      {data.maxContext?.toLocaleString() ||
-                                        "N/A"}{" "}
-                                      tokens
-                                    </span>
-                                  </p>
-                                )}
-                              </div>
-                            </Card>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </Card>
-              </TabsContent>
-            </Tabs>
+            <SystemChecker
+              systemInfo={systemInfo}
+              comparisonModel={comparisonModel}
+              models={llmModels}
+              onModelSelect={(id) =>
+                setComparisonModel(llmModels.find((m) => m.id === id))
+              }
+            />
           </div>
+
+          <AdvancedAnalysisSection
+            analysis={analysis}
+            loading={loading}
+            modelId={modelId}
+            setModelId={setModelId}
+            runAdvancedCheck={runAdvancedCheck}
+            error={error}
+          />
 
           {/* Model Requirements */}
           <div className="space-y-6">

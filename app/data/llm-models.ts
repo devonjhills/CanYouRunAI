@@ -272,8 +272,15 @@ export interface ModelAnalysis {
   maxContext: number | null;
 }
 
+interface ModelSummary {
+  description: string | null;
+}
+
 export interface AdvancedAnalysis {
+  modelConfig: any;
   modelParams: number;
+  modelSummary: ModelSummary;
   systemSpecs: SystemSpecs;
   quantizationResults: Record<string, ModelAnalysis>;
+  usingPlaceholders?: boolean;
 }
