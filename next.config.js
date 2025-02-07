@@ -4,6 +4,10 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  reactStrictMode: true,
+  experimental: {
+    appDir: true,
+  },
 };
 
 module.exports = nextConfig;

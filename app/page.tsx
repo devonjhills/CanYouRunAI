@@ -17,6 +17,7 @@ import { SystemInfo, SystemChecker } from "@/app/components/SystemChecker";
 import Cookies from "js-cookie";
 import { type SystemSpecs, type AdvancedAnalysis } from "./data/llm-models";
 import { AdvancedAnalysisSection } from "./components/AdvancedAnalysis";
+import { ModelSelect } from "@/app/components/ModelSelect";
 
 const isProd = process.env.NODE_ENV === "production";
 
@@ -27,14 +28,14 @@ const QUANTIZE_WORKER_URL =
 
 export default function Home() {
   const [systemInfo, setSystemInfo] = useState<SystemInfo | undefined>(
-    undefined,
+    undefined
   );
   const [selectedModel, setSelectedModel] = useState<LLMModel | undefined>();
   const [status, setStatus] = useState<
     "idle" | "downloading" | "waiting" | "gathering" | "finished"
   >("idle");
   const [comparisonModel, setComparisonModel] = useState<LLMModel | undefined>(
-    llmModels[0],
+    undefined
   );
   const [analysis, setAnalysis] = useState<AdvancedAnalysis | null>(null);
   const [loading, setLoading] = useState(false);
@@ -58,7 +59,7 @@ export default function Home() {
           {
             credentials: "include",
             mode: "cors",
-          },
+          }
         );
         const data = (await response.json()) as {
           success: boolean;
@@ -114,6 +115,7 @@ export default function Home() {
   const handleModelSelect = (modelId: string) => {
     const model = llmModels.find((m) => m.id === modelId);
     setSelectedModel(model);
+    setComparisonModel(model);
   };
 
   const WINDOWS_EXE_URL = "/CanYouRunAI.exe";
@@ -155,15 +157,14 @@ export default function Home() {
                       status === step
                         ? "border-primary bg-primary text-primary-foreground"
                         : "border-muted text-muted-foreground"
-                    }`}
-                    >
+                    }`}>
                       {i + 1}
                     </div>
                     <span className="text-muted-foreground capitalize">
                       {step}
                     </span>
                   </div>
-                ),
+                )
               )}
             </div>
 
@@ -285,17 +286,21 @@ export default function Home() {
         credentials: "include",
       });
 
-      const data = await response.json() as { error?: string } & AdvancedAnalysis;
-      
+      const data = (await response.json()) as {
+        error?: string;
+      } & AdvancedAnalysis;
+
       if (!response.ok) {
-        setError(data.error || 'Failed to analyze model');
+        setError(data.error || "Failed to analyze model");
         return;
       }
 
       setAnalysis(data);
     } catch (error) {
       console.error("Failed to run advanced check:", error);
-      setError(error instanceof Error ? error.message : 'An unexpected error occurred');
+      setError(
+        error instanceof Error ? error.message : "An unexpected error occurred"
+      );
     } finally {
       setLoading(false);
     }
@@ -304,53 +309,51 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="py-16 md:py-24 px-6">
-        <Card className="neo-card max-w-4xl mx-auto mb-12 p-8 md:p-12">
-          <div className="space-y-6">
-            <h1 className="text-4xl md:text-6xl font-black leading-tight">
-              Can I Run this LLM <span className="text-primary">locally?</span>
-            </h1>
-            <p className="text-xl md:text-2xl text-muted-foreground">
-              Analyze your computer in seconds.{" "}
-              <span className="font-bold text-foreground">100% Free.</span>
-            </p>
+      <section className="py-16 md:py-24 px-6 bg-gradient-to-b from-background to-muted/30">
+        <Card className="neo-card max-w-4xl mx-auto mb-12 p-8 md:p-12 border-2 shadow-2xl relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent pointer-events-none" />
+          <div className="relative space-y-8">
+            <div className="space-y-4">
+              <h1 className="text-4xl md:text-6xl font-black leading-tight">
+                Can I Run this LLM <span className="text-primary">locally?</span>
+              </h1>
+              <p className="text-xl md:text-2xl text-muted-foreground">
+                Analyze your computer in seconds.{" "}
+                <span className="font-bold text-foreground">100% Free.</span>
+              </p>
+            </div>
 
             {/* Action Steps */}
-            <div className="mt-12 space-y-8">
+            <div className="mt-12 space-y-8 divide-y divide-border">
               {/* Step 1 */}
-              <div className="space-y-4">
+              <div className="space-y-4 pt-4">
                 <div className="flex items-center gap-4">
-                  <span className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-primary-foreground font-bold text-lg">
+                  <span className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-primary-foreground font-bold text-lg shadow-lg">
                     1
                   </span>
                   <h2 className="text-xl font-bold">Select your LLM</h2>
                 </div>
-                <Select onValueChange={handleModelSelect}>
-                  <SelectTrigger className="neo-input w-full p-4 text-lg">
-                    <SelectValue placeholder="Choose a model from our list" />
-                  </SelectTrigger>
-                  <SelectContent className="neo-brutalist-shadow bg-popover border-2 border-foreground">
-                    {llmModels.map((model) => (
-                      <SelectItem key={model.id} value={model.id}>
-                        {model.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <ModelSelect
+                  models={llmModels}
+                  selectedModelId={selectedModel?.id}
+                  onModelSelect={handleModelSelect}
+                  className="w-full"
+                  triggerClassName="neo-input w-full p-4 text-lg hover:border-primary/50 transition-colors"
+                  placeholder="Choose a model from our list"
+                />
               </div>
 
               {/* Step 2 */}
-              <div className="space-y-4">
+              <div className="space-y-4 pt-8">
                 <div className="flex items-center gap-4">
-                  <span className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-primary-foreground font-bold text-lg">
+                  <span className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-primary-foreground font-bold text-lg shadow-lg">
                     2
                   </span>
                   <h2 className="text-xl font-bold">Check your system</h2>
                 </div>
                 <Button
-                  className="neo-button w-full text-lg py-6"
-                  onClick={handleSystemCheck}
-                >
+                  className="neo-button w-full text-lg py-6 bg-primary hover:bg-primary/90 transition-colors shadow-lg hover:shadow-xl"
+                  onClick={handleSystemCheck}>
                   <span>Can You Run This AI?</span>
                 </Button>
               </div>
@@ -374,20 +377,19 @@ export default function Home() {
             />
           </div>
 
-          <AdvancedAnalysisSection
-            analysis={analysis}
-            loading={loading}
-            modelId={modelId}
-            setModelId={setModelId}
-            runAdvancedCheck={runAdvancedCheck}
-            error={error}
-          />
+          <div id="advanced-analysis">
+            <AdvancedAnalysisSection
+              analysis={analysis}
+              loading={loading}
+              modelId={modelId}
+              setModelId={setModelId}
+              runAdvancedCheck={runAdvancedCheck}
+              error={error}
+            />
+          </div>
 
           {/* Model Requirements */}
-          <div className="space-y-6">
-            <h2 className="text-3xl font-bold text-center mb-8">
-              All LLM Requirements
-            </h2>
+          <div id="model-requirements" className="space-y-6">
             <SystemRequirements />
           </div>
         </div>

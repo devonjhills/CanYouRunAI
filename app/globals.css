@@ -67,45 +67,14 @@ body {
 }
 
 @layer utilities {
-  /* Neo-brutalist utility classes */
+  /* Simplified neo-brutalist utility classes */
   .neo-brutalist-shadow {
-    box-shadow: 6px 6px 0px 0px hsl(var(--border));
-  }
-
-  .neo-brutalist-shadow-sm {
     box-shadow: 4px 4px 0px 0px hsl(var(--border));
   }
 
   .neo-brutalist-box {
-    @apply border-2 border-foreground transition-all duration-200;
+    @apply border-2 border-foreground;
     box-shadow: 4px 4px 0px 0px hsl(var(--border));
-  }
-
-  .neo-brutalist-box:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 6px 6px 0px 0px hsl(var(--border));
-  }
-
-  /* Hover effects for interactive elements */
-  .neo-hover {
-    @apply transition-all duration-200;
-  }
-
-  .neo-hover:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 4px 4px 0px 0px hsl(var(--foreground));
-  }
-
-  /* Button styles */
-  .neo-button {
-    @apply bg-primary text-primary-foreground border-2 border-foreground 
-           px-6 py-2 transition-all duration-200;
-    box-shadow: 4px 4px 0px 0px hsl(var(--foreground));
-  }
-
-  .neo-button:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 6px 6px 0px 0px hsl(var(--foreground));
   }
 
   /* Input styles */
@@ -115,10 +84,9 @@ body {
     box-shadow: 4px 4px 0px 0px hsl(var(--foreground));
   }
 
-  /* Card styles */
-  .neo-card {
-    @apply bg-card border-2 border-foreground p-6 
-           transition-all duration-200;
-    box-shadow: 6px 6px 0px 0px hsl(var(--foreground));
+  /* Remove hover classes */
+  .neo-hover,
+  .neo-button {
+    @apply transition-colors;
   }
 }

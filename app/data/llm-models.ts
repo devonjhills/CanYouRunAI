@@ -11,6 +11,9 @@ export interface LLMModel {
   name: string;
   description: string;
   requirements: LLMRequirements;
+  requiredRAM: string;
+  requiredVRAM: string;
+  recommendedGPU: string;
 }
 
 export const llmModels: LLMModel[] = [
@@ -26,6 +29,9 @@ export const llmModels: LLMModel[] = [
       VRAM: "6.0 GB",
       OS: "windows",
     },
+    requiredRAM: "16.0 GB",
+    requiredVRAM: "6.0 GB",
+    recommendedGPU: "NVIDIA GTX 1060 6GB or better",
   },
   {
     id: "llama2-13b",
@@ -38,6 +44,9 @@ export const llmModels: LLMModel[] = [
       VRAM: "8.0 GB",
       OS: "windows",
     },
+    requiredRAM: "32.0 GB",
+    requiredVRAM: "8.0 GB",
+    recommendedGPU: "NVIDIA RTX 2060 8GB or better",
   },
   {
     id: "llama2-70b",
@@ -51,6 +60,9 @@ export const llmModels: LLMModel[] = [
       VRAM: "16.0 GB",
       OS: "windows",
     },
+    requiredRAM: "64.0 GB",
+    requiredVRAM: "16.0 GB",
+    recommendedGPU: "NVIDIA RTX 3080 or better",
   },
   {
     id: "mixtral-8x7b",
@@ -64,6 +76,9 @@ export const llmModels: LLMModel[] = [
       VRAM: "12.0 GB",
       OS: "windows",
     },
+    requiredRAM: "48.0 GB",
+    requiredVRAM: "12.0 GB",
+    recommendedGPU: "NVIDIA RTX 3070 or better",
   },
   {
     id: "llama3-1-405b",
@@ -77,6 +92,9 @@ export const llmModels: LLMModel[] = [
       VRAM: "80.0 GB",
       OS: "linux",
     },
+    requiredRAM: "128.0 GB",
+    requiredVRAM: "80.0 GB",
+    recommendedGPU: "NVIDIA A100 (80GB) or better",
   },
   {
     id: "bloom-176b",
@@ -90,6 +108,9 @@ export const llmModels: LLMModel[] = [
       VRAM: "80.0 GB per GPU node.",
       OS: "linux",
     },
+    requiredRAM: "128.0 GB or more",
+    requiredVRAM: "80.0 GB per GPU node.",
+    recommendedGPU: "NVIDIA A100 (80GB) or equivalent cluster setup.",
   },
   {
     id: "falcon-180b",
@@ -103,6 +124,9 @@ export const llmModels: LLMModel[] = [
       VRAM: ">80.0 GB per node for optimal performance.",
       OS: "linux",
     },
+    requiredRAM: "256.0 GB recommended.",
+    requiredVRAM: ">80.0 GB per node for optimal performance.",
+    recommendedGPU: "NVIDIA H100/A100 GPUs with at least four nodes in a distributed setup.",
   },
 
   // -- From the second listing --
@@ -117,6 +141,9 @@ export const llmModels: LLMModel[] = [
       VRAM: "10.0 GB",
       OS: "windows",
     },
+    requiredRAM: "32.0 GB",
+    requiredVRAM: "10.0 GB",
+    recommendedGPU: "NVIDIA RTX 3060 or better",
   },
   {
     id: "llama3-70b",
@@ -129,6 +156,9 @@ export const llmModels: LLMModel[] = [
       VRAM: "24.0 GB",
       OS: "windows",
     },
+    requiredRAM: "64.0 GB",
+    requiredVRAM: "24.0 GB",
+    recommendedGPU: "NVIDIA RTX 4090 or better",
   },
   {
     id: "deepseek-r1-70b",
@@ -142,6 +172,9 @@ export const llmModels: LLMModel[] = [
       VRAM: "12.0 GB",
       OS: "windows",
     },
+    requiredRAM: "128.0 GB",
+    requiredVRAM: "12.0 GB",
+    recommendedGPU: "NVIDIA RTX 3090 (24GB) or better",
   },
   {
     id: "mixtral-8x22b",
@@ -155,6 +188,9 @@ export const llmModels: LLMModel[] = [
       VRAM: "24.0 GB",
       OS: "windows",
     },
+    requiredRAM: "96.0 GB",
+    requiredVRAM: "24.0 GB",
+    recommendedGPU: "NVIDIA RTX 4090 (24GB) or dual RTX 3090",
   },
   {
     id: "phi-4",
@@ -167,6 +203,9 @@ export const llmModels: LLMModel[] = [
       VRAM: "8.0 GB",
       OS: "windows",
     },
+    requiredRAM: "24.0 GB",
+    requiredVRAM: "8.0 GB",
+    recommendedGPU: "NVIDIA RTX 3060 or better",
   },
   {
     id: "qwen2-72b",
@@ -179,6 +218,9 @@ export const llmModels: LLMModel[] = [
       VRAM: "48.0 GB",
       OS: "windows",
     },
+    requiredRAM: "128.0 GB",
+    requiredVRAM: "48.0 GB",
+    recommendedGPU: "NVIDIA RTX 6000 Ada or dual RTX 4090",
   },
   {
     id: "gemma2-9b",
@@ -191,6 +233,9 @@ export const llmModels: LLMModel[] = [
       VRAM: "10.0 GB",
       OS: "windows",
     },
+    requiredRAM: "32.0 GB",
+    requiredVRAM: "10.0 GB",
+    recommendedGPU: "NVIDIA RTX 2080 Ti or better",
   },
   {
     id: "mistral-large2",
@@ -203,6 +248,9 @@ export const llmModels: LLMModel[] = [
       VRAM: "16.0 GB",
       OS: "windows",
     },
+    requiredRAM: "64.0 GB",
+    requiredVRAM: "16.0 GB",
+    recommendedGPU: "NVIDIA RTX 4080 Super or better",
   },
   {
     id: "codestral-mamba",
@@ -215,6 +263,9 @@ export const llmModels: LLMModel[] = [
       VRAM: "12.0 GB",
       OS: "windows",
     },
+    requiredRAM: "48.0 GB",
+    requiredVRAM: "12.0 GB",
+    recommendedGPU: "NVIDIA RTX 3080 (12GB) or better",
   },
   {
     id: "deepseek-v3",
@@ -227,6 +278,9 @@ export const llmModels: LLMModel[] = [
       VRAM: "24.0 GB",
       OS: "windows",
     },
+    requiredRAM: "64.0 GB",
+    requiredVRAM: "24.0 GB",
+    recommendedGPU: "NVIDIA RTX 4090 or A4000 Ada",
   },
 ];
 
