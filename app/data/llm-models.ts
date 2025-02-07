@@ -126,7 +126,8 @@ export const llmModels: LLMModel[] = [
     },
     requiredRAM: "256.0 GB recommended.",
     requiredVRAM: ">80.0 GB per node for optimal performance.",
-    recommendedGPU: "NVIDIA H100/A100 GPUs with at least four nodes in a distributed setup.",
+    recommendedGPU:
+      "NVIDIA H100/A100 GPUs with at least four nodes in a distributed setup.",
   },
 
   // -- From the second listing --

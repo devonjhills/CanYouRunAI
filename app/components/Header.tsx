@@ -18,7 +18,10 @@ export const Header = () => {
       <nav className="max-w-6xl mx-auto flex items-center px-6 py-4">
         {/* Logo - takes up 1/4 of space */}
         <div className="w-1/4">
-          <Link href="/" className="flex items-center gap-2 neo-hover text-foreground">
+          <Link
+            href="/"
+            className="flex items-center gap-2 neo-hover text-foreground"
+          >
             <Image
               src="/logo.png"
               alt="CanYouRunAI Logo"
@@ -27,27 +30,29 @@ export const Header = () => {
               priority
               className="w-8 h-8 md:w-10 md:h-10"
             />
-            <span className="font-bold text-lg hidden sm:inline">CanYouRunAI</span>
+            <span className="font-bold text-lg hidden sm:inline">
+              CanYouRunAI
+            </span>
           </Link>
         </div>
 
         {/* Navigation - centered, takes up 1/2 of space */}
         <div className="flex-1 flex justify-center gap-8">
-          <button 
+          <button
             onClick={() => scrollToSection("system-requirements")}
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors hidden sm:inline-block"
           >
             System Check
           </button>
-          
-          <button 
+
+          <button
             onClick={() => scrollToSection("advanced-analysis")}
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors hidden sm:inline-block"
           >
             Advanced Analysis
           </button>
-          
-          <button 
+
+          <button
             onClick={() => scrollToSection("model-requirements")}
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors hidden sm:inline-block"
           >

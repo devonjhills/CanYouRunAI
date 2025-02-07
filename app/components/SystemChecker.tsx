@@ -36,6 +36,7 @@ interface SystemCheckerProps {
   comparisonModel?: LLMModel;
   models: LLMModel[];
   onModelSelect: (modelId: string) => void;
+  lastChecked?: string | null;
 }
 
 function compareRAMorVRAM(actual: string, required: string): boolean {
@@ -62,6 +63,7 @@ export function SystemChecker({
   comparisonModel,
   models,
   onModelSelect,
+  lastChecked,
 }: SystemCheckerProps) {
   return (
     <Card className="w-full overflow-hidden" id="system-requirements">
@@ -70,11 +72,13 @@ export function SystemChecker({
           System Requirements Check
         </h2>
       </div>
-      
+
       <Tabs defaultValue="comparison" className="w-full">
         <div className="px-6 pt-4">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="comparison">Requirements Comparison</TabsTrigger>
+            <TabsTrigger value="comparison">
+              Requirements Comparison
+            </TabsTrigger>
             <TabsTrigger value="my-system">My Computer Details</TabsTrigger>
           </TabsList>
         </div>
@@ -91,11 +95,14 @@ export function SystemChecker({
 
             <div className="flex gap-8 mb-4">
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-foreground/90">Your System</h3>
+                <h3 className="text-lg font-semibold text-foreground/90">
+                  Your System
+                </h3>
               </div>
               <div className="flex-1">
                 <h3 className="text-lg font-semibold text-foreground/90">
-                  {comparisonModel?.name || "Select a model to view"} Requirements
+                  {comparisonModel?.name || "Select a model to view"}{" "}
+                  Requirements
                 </h3>
               </div>
             </div>
@@ -156,8 +163,8 @@ export function SystemChecker({
                 <div key={spec.label} className="flex gap-4">
                   <div
                     className={`flex-1 flex items-center space-x-3 p-3 rounded-lg border transition-colors ${
-                      spec.isValid 
-                        ? "bg-green-500/5 border-green-500/20" 
+                      spec.isValid
+                        ? "bg-green-500/5 border-green-500/20"
                         : "bg-red-500/5 border-red-500/20"
                     }`}
                   >
@@ -175,8 +182,8 @@ export function SystemChecker({
                   </div>
                   <div
                     className={`flex-1 flex items-center space-x-3 p-3 rounded-lg border transition-colors ${
-                      spec.isValid 
-                        ? "bg-green-500/5 border-green-500/20" 
+                      spec.isValid
+                        ? "bg-green-500/5 border-green-500/20"
                         : "bg-red-500/5 border-red-500/20"
                     }`}
                   >
@@ -201,28 +208,28 @@ export function SystemChecker({
                     {
                       icon: <Cpu className="w-6 h-6 text-primary" />,
                       label: "CPU",
-                      value: systemInfo.CPU
+                      value: systemInfo.CPU,
                     },
                     {
                       icon: <MemoryStick className="w-6 h-6 text-primary" />,
                       label: "RAM",
-                      value: systemInfo.RAM
+                      value: systemInfo.RAM,
                     },
                     {
                       icon: <MonitorCog className="w-6 h-6 text-primary" />,
                       label: "GPU",
-                      value: systemInfo.GPU
+                      value: systemInfo.GPU,
                     },
                     {
                       icon: <HardDrive className="w-6 h-6 text-primary" />,
                       label: "VRAM",
-                      value: systemInfo.VRAM
+                      value: systemInfo.VRAM,
                     },
                     {
                       icon: <Monitor className="w-6 h-6 text-primary" />,
                       label: "Operating System",
-                      value: systemInfo.OS
-                    }
+                      value: systemInfo.OS,
+                    },
                   ].map((item) => (
                     <div
                       key={item.label}
@@ -230,19 +237,35 @@ export function SystemChecker({
                     >
                       <div className="mt-1">{item.icon}</div>
                       <div className="flex-1">
-                        <h3 className="font-semibold text-foreground/90">{item.label}</h3>
-                        <p className="text-lg break-words text-foreground/80">{item.value}</p>
+                        <h3 className="font-semibold text-foreground/90">
+                          {item.label}
+                        </h3>
+                        <p className="text-lg break-words text-foreground/80">
+                          {item.value}
+                        </p>
                       </div>
                     </div>
                   ))}
                 </div>
                 <p className="text-sm text-muted-foreground text-center">
-                  Last checked: {new Date().toLocaleString()}
+                  {lastChecked
+                    ? `Last checked: ${new Date(lastChecked).toLocaleString(
+                        undefined,
+                        {
+                          year: "numeric",
+                          month: "numeric",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        },
+                      )}`
+                    : "Last checked: Unknown"}
                 </p>
               </div>
             ) : (
               <div className="text-center py-8 text-muted-foreground">
-                No system information available. Please run the system check tool.
+                No system information available. Please run the system check
+                tool.
               </div>
             )}
           </div>

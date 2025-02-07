@@ -28,26 +28,32 @@ const QUANTIZE_WORKER_URL =
 
 export default function Home() {
   const [systemInfo, setSystemInfo] = useState<SystemInfo | undefined>(
-    undefined
+    undefined,
   );
   const [selectedModel, setSelectedModel] = useState<LLMModel | undefined>();
   const [status, setStatus] = useState<
     "idle" | "downloading" | "waiting" | "gathering" | "finished"
   >("idle");
   const [comparisonModel, setComparisonModel] = useState<LLMModel | undefined>(
-    undefined
+    undefined,
   );
   const [analysis, setAnalysis] = useState<AdvancedAnalysis | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // This state now holds the modelId entered in the advanced tab.
   const [modelId, setModelId] = useState("");
+  const [lastChecked, setLastChecked] = useState<string | null>(null);
 
   useEffect(() => {
     // Initial check on page load
     const savedInfo = getStoredSystemInfo();
     if (savedInfo) {
       setSystemInfo(savedInfo);
+      // Get the timestamp from storage
+      const timestamp = isProd
+        ? Cookies.get("systemInfoTimestamp")
+        : localStorage.getItem("systemInfoTimestamp");
+      setLastChecked(timestamp || null);
     }
   }, []);
 
@@ -59,7 +65,7 @@ export default function Home() {
           {
             credentials: "include",
             mode: "cors",
-          }
+          },
         );
         const data = (await response.json()) as {
           success: boolean;
@@ -122,6 +128,18 @@ export default function Home() {
 
   const handleSystemCheck = (e: React.MouseEvent) => {
     e.preventDefault();
+
+    // If we already have system info, show confirmation dialog
+    if (systemInfo) {
+      if (
+        !confirm(
+          "Would you like to scan your system again? This is recommended if your hardware has changed recently.",
+        )
+      ) {
+        return;
+      }
+    }
+
     setStatus("downloading");
 
     fetch(WINDOWS_EXE_URL)
@@ -157,14 +175,15 @@ export default function Home() {
                       status === step
                         ? "border-primary bg-primary text-primary-foreground"
                         : "border-muted text-muted-foreground"
-                    }`}>
+                    }`}
+                    >
                       {i + 1}
                     </div>
                     <span className="text-muted-foreground capitalize">
                       {step}
                     </span>
                   </div>
-                )
+                ),
               )}
             </div>
 
@@ -206,14 +225,21 @@ export default function Home() {
 
   // Store system info
   const storeSystemInfo = (info: SystemInfo) => {
+    const timestamp = new Date().toISOString();
     if (isProd) {
       Cookies.set("systemInfo", JSON.stringify(info), {
-        expires: 1, // 1 day
+        expires: 1,
+        secure: true,
+        sameSite: "none",
+      });
+      Cookies.set("systemInfoTimestamp", timestamp, {
+        expires: 1,
         secure: true,
         sameSite: "none",
       });
     } else {
       localStorage.setItem("systemInfo", JSON.stringify(info));
+      localStorage.setItem("systemInfoTimestamp", timestamp);
     }
   };
 
@@ -299,7 +325,7 @@ export default function Home() {
     } catch (error) {
       console.error("Failed to run advanced check:", error);
       setError(
-        error instanceof Error ? error.message : "An unexpected error occurred"
+        error instanceof Error ? error.message : "An unexpected error occurred",
       );
     } finally {
       setLoading(false);
@@ -315,7 +341,8 @@ export default function Home() {
           <div className="relative space-y-8">
             <div className="space-y-4">
               <h1 className="text-4xl md:text-6xl font-black leading-tight">
-                Can I Run this LLM <span className="text-primary">locally?</span>
+                Can I Run this LLM{" "}
+                <span className="text-primary">locally?</span>
               </h1>
               <p className="text-xl md:text-2xl text-muted-foreground">
                 Analyze your computer in seconds.{" "}
@@ -351,11 +378,31 @@ export default function Home() {
                   </span>
                   <h2 className="text-xl font-bold">Check your system</h2>
                 </div>
-                <Button
-                  className="neo-button w-full text-lg py-6 bg-primary hover:bg-primary/90 transition-colors shadow-lg hover:shadow-xl"
-                  onClick={handleSystemCheck}>
-                  <span>Can You Run This AI?</span>
-                </Button>
+                <div className="space-y-2">
+                  <Button
+                    className="neo-button w-full text-lg py-6 bg-primary hover:bg-primary/90 transition-colors shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={handleSystemCheck}
+                    disabled={!selectedModel}
+                  >
+                    <span>
+                      {selectedModel
+                        ? "Can You Run This AI?"
+                        : "Please select a model first"}
+                    </span>
+                  </Button>
+                  {lastChecked && (
+                    <p className="text-sm text-muted-foreground text-center">
+                      Last system check:{" "}
+                      {new Date(lastChecked).toLocaleString(undefined, {
+                        year: "numeric",
+                        month: "numeric",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -374,6 +421,7 @@ export default function Home() {
               onModelSelect={(id) =>
                 setComparisonModel(llmModels.find((m) => m.id === id))
               }
+              lastChecked={lastChecked}
             />
           </div>
 

@@ -11,13 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import {
-  Cpu,
-  MemoryStick,
-  MonitorCog,
-  HardDrive,
-  Monitor,
-} from "lucide-react";
+import { Cpu, MemoryStick, MonitorCog, HardDrive, Monitor } from "lucide-react";
 
 export const SystemRequirements = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -72,7 +66,8 @@ export const SystemRequirements = () => {
             LLM System Requirements
           </h2>
           <p className="text-muted-foreground max-w-[700px] mx-auto">
-            Compare hardware requirements for different LLM models. Filter by category to find the right model for your setup.
+            Compare hardware requirements for different LLM models. Filter by
+            category to find the right model for your setup.
           </p>
         </div>
 
@@ -93,10 +88,15 @@ export const SystemRequirements = () => {
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {filteredModels.map((model) => (
-            <Card key={model.id} className="hover:shadow-lg transition-shadow flex flex-col">
+            <Card
+              key={model.id}
+              className="hover:shadow-lg transition-shadow flex flex-col"
+            >
               <CardHeader className="flex-none">
                 <div>
-                  <h3 className="text-xl font-bold leading-tight">{model.name}</h3>
+                  <h3 className="text-xl font-bold leading-tight">
+                    {model.name}
+                  </h3>
                   <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
                     {model.description}
                   </p>
@@ -104,29 +104,29 @@ export const SystemRequirements = () => {
               </CardHeader>
               <CardContent className="flex-1">
                 <div className="space-y-3">
-                  <RequirementItem 
-                    label="CPU" 
-                    value={model.requirements.CPU} 
+                  <RequirementItem
+                    label="CPU"
+                    value={model.requirements.CPU}
                     icon={<Cpu className="h-4 w-4 text-primary" />}
                   />
-                  <RequirementItem 
-                    label="RAM" 
-                    value={model.requirements.RAM} 
+                  <RequirementItem
+                    label="RAM"
+                    value={model.requirements.RAM}
                     icon={<MemoryStick className="h-4 w-4 text-primary" />}
                   />
-                  <RequirementItem 
-                    label="GPU" 
-                    value={model.requirements.GPU} 
+                  <RequirementItem
+                    label="GPU"
+                    value={model.requirements.GPU}
                     icon={<MonitorCog className="h-4 w-4 text-primary" />}
                   />
-                  <RequirementItem 
-                    label="VRAM" 
-                    value={model.requirements.VRAM} 
+                  <RequirementItem
+                    label="VRAM"
+                    value={model.requirements.VRAM}
                     icon={<HardDrive className="h-4 w-4 text-primary" />}
                   />
-                  <RequirementItem 
-                    label="OS" 
-                    value={model.requirements.OS} 
+                  <RequirementItem
+                    label="OS"
+                    value={model.requirements.OS}
                     icon={<Monitor className="h-4 w-4 text-primary" />}
                   />
                 </div>
@@ -139,12 +139,12 @@ export const SystemRequirements = () => {
   );
 };
 
-const RequirementItem = ({ 
-  label, 
-  value, 
-  icon 
-}: { 
-  label: string; 
+const RequirementItem = ({
+  label,
+  value,
+  icon,
+}: {
+  label: string;
   value: string;
   icon: React.ReactNode;
 }) => (

@@ -124,13 +124,13 @@ async function handleRequest(request: Request): Promise<Response> {
           {
             status: 400,
             headers: corsHeaders,
-          }
+          },
         );
       }
 
       // Try to fetch the config first to check for access restrictions
       const configResponse = await fetch(
-        `https://huggingface.co/${modelId}/resolve/main/config.json`
+        `https://huggingface.co/${modelId}/resolve/main/config.json`,
       );
 
       if (configResponse.status === 401 || configResponse.status === 403) {
@@ -142,7 +142,7 @@ async function handleRequest(request: Request): Promise<Response> {
           {
             status: 403,
             headers: corsHeaders,
-          }
+          },
         );
       }
 
@@ -158,14 +158,14 @@ async function handleRequest(request: Request): Promise<Response> {
           JSON.stringify({
             error: "Invalid or incomplete model configuration",
           }),
-          { status: 400, headers: corsHeaders }
+          { status: 400, headers: corsHeaders },
         );
       }
 
       if (!modelParams) {
         return new Response(
           JSON.stringify({ error: "Failed to determine model parameters" }),
-          { status: 400, headers: corsHeaders }
+          { status: 400, headers: corsHeaders },
         );
       }
 
@@ -178,7 +178,7 @@ async function handleRequest(request: Request): Promise<Response> {
           systemSpecs.totalRam,
           bpw,
           systemSpecs.ramBandwidth,
-          modelConfig
+          modelConfig,
         );
       }
 
@@ -190,7 +190,7 @@ async function handleRequest(request: Request): Promise<Response> {
           systemSpecs,
           quantizationResults,
         }),
-        { headers: corsHeaders }
+        { headers: corsHeaders },
       );
     } catch (error: unknown) {
       console.error("Error processing quantization:", error);
@@ -209,7 +209,7 @@ async function handleRequest(request: Request): Promise<Response> {
 async function fetchModelConfig(modelId: string): Promise<ModelConfig | null> {
   try {
     const response = await fetch(
-      `https://huggingface.co/${modelId}/resolve/main/config.json`
+      `https://huggingface.co/${modelId}/resolve/main/config.json`,
     );
     if (!response.ok) throw new Error("Failed to fetch config");
     return await response.json();
@@ -223,7 +223,7 @@ async function fetchModelParams(modelId: string): Promise<number | null> {
   try {
     // try to parse from README
     const readmeResponse = await fetch(
-      `https://huggingface.co/${modelId}/raw/main/README.md`
+      `https://huggingface.co/${modelId}/raw/main/README.md`,
     );
 
     if (readmeResponse.ok) {
@@ -250,7 +250,7 @@ async function fetchModelParams(modelId: string): Promise<number | null> {
             "[DEBUG] Found parameter match:",
             match[1],
             "with pattern:",
-            pattern
+            pattern,
           );
           const exactParams = parseFloat(match[1]);
           return exactParams * 1e9;
@@ -283,7 +283,7 @@ function estimateModelParams(config: ModelConfig): number {
 async function fetchModelSummary(modelId: string): Promise<ModelSummary> {
   try {
     const readmeResponse = await fetch(
-      `https://huggingface.co/${modelId}/raw/main/README.md`
+      `https://huggingface.co/${modelId}/raw/main/README.md`,
     );
 
     if (!readmeResponse.ok) {
@@ -308,7 +308,7 @@ async function fetchModelSummary(modelId: string): Promise<ModelSummary> {
     let foundSection = false;
     for (const section of sections) {
       const match = text.match(
-        new RegExp(`${section.pattern.source}([^#]+)`, "i")
+        new RegExp(`${section.pattern.source}([^#]+)`, "i"),
       );
       if (match?.[1]) {
         foundSection = true;
@@ -334,7 +334,7 @@ async function fetchModelSummary(modelId: string): Promise<ModelSummary> {
 
 function calculateMaxTokens(
   availableMemoryGb: number,
-  config: ModelConfig
+  config: ModelConfig,
 ): number {
   const bytesPerElement =
     (config.torch_dtype ?? "float16") === "float32" ? 4 : 2;
@@ -367,7 +367,7 @@ function analyzeQuantization(
   ramGb: number,
   bpw: number,
   ramBandwidth: number,
-  config: ModelConfig
+  config: ModelConfig,
 ): ModelAnalysis {
   const requiredMem = (paramsB * bpw) / 8 / 1e9;
   let ctx = 0;
@@ -433,21 +433,25 @@ function analyzeQuantization(
 }
 
 function cleanupMarkdown(text: string): string {
-  return text
-    .trim()
-    // First handle lists and paragraphs
-    .replace(/^- (.+)$/gm, '<li>$1</li>') // List items
-    .replace(/(?:^<li>.*<\/li>\n?)+/gm, '<ul class="space-y-0">$&</ul>') // Wrap lists with no spacing
-    .split(/\n{2,}/).map(p => `<p>${p}</p>`).join('\n') // Paragraphs
-    // Then handle inline formatting
-    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>') // Bold
-    .replace(/\*([^*]+)\*/g, '<em>$1</em>') // Italic
-    .replace(/\n(?!<\/?[pu])/g, '<br />') // Line breaks (not before/after p or ul tags)
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>') // Links
-    // Clean up any double-wrapping of paragraphs
-    .replace(/<p><p>/g, '<p>')
-    .replace(/<\/p><\/p>/g, '</p>')
-    .replace(/<p>\s*<br \/>\s*<\/p>/g, '') // Remove empty paragraphs
-    // If description is too long, truncate it
-    .slice(0, 2000);
+  return (
+    text
+      .trim()
+      // First handle lists and paragraphs
+      .replace(/^- (.+)$/gm, "<li>$1</li>") // List items
+      .replace(/(?:^<li>.*<\/li>\n?)+/gm, '<ul class="space-y-0">$&</ul>') // Wrap lists with no spacing
+      .split(/\n{2,}/)
+      .map((p) => `<p>${p}</p>`)
+      .join("\n") // Paragraphs
+      // Then handle inline formatting
+      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>") // Bold
+      .replace(/\*([^*]+)\*/g, "<em>$1</em>") // Italic
+      .replace(/\n(?!<\/?[pu])/g, "<br />") // Line breaks (not before/after p or ul tags)
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>') // Links
+      // Clean up any double-wrapping of paragraphs
+      .replace(/<p><p>/g, "<p>")
+      .replace(/<\/p><\/p>/g, "</p>")
+      .replace(/<p>\s*<br \/>\s*<\/p>/g, "") // Remove empty paragraphs
+      // If description is too long, truncate it
+      .slice(0, 2000)
+  );
 }

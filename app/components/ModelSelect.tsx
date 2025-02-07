@@ -34,7 +34,7 @@ export function ModelSelect({
   const [isOpen, setIsOpen] = useState(false);
 
   const filteredModels = models.filter((model) =>
-    model.name.toLowerCase().includes(searchQuery.toLowerCase())
+    model.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   return (
@@ -104,4 +104,4 @@ export function ModelSelect({
       </Select>
     </div>
   );
-} 
+}

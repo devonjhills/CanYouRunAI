@@ -38,7 +38,8 @@ export function SystemChecker({
         <div className="text-center space-y-4">
           <h2 className="text-3xl font-bold">System Requirements Check</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Compare your system specifications against the requirements for running different AI models
+            Compare your system specifications against the requirements for
+            running different AI models
           </p>
         </div>
 
@@ -53,15 +54,21 @@ export function SystemChecker({
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span>RAM:</span>
-                  <span className="font-mono">{systemInfo?.RAM ?? "Unknown"}</span>
+                  <span className="font-mono">
+                    {systemInfo?.RAM ?? "Unknown"}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span>GPU:</span>
-                  <span className="font-mono">{systemInfo?.GPU ?? "Unknown"}</span>
+                  <span className="font-mono">
+                    {systemInfo?.GPU ?? "Unknown"}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span>VRAM:</span>
-                  <span className="font-mono">{systemInfo?.VRAM ?? "Unknown"}</span>
+                  <span className="font-mono">
+                    {systemInfo?.VRAM ?? "Unknown"}
+                  </span>
                 </div>
               </div>
             </div>
@@ -97,15 +104,21 @@ export function SystemChecker({
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
                     <span>Required RAM:</span>
-                    <span className="font-mono">{comparisonModel.requiredRAM}</span>
+                    <span className="font-mono">
+                      {comparisonModel.requiredRAM}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span>Required VRAM:</span>
-                    <span className="font-mono">{comparisonModel.requiredVRAM}</span>
+                    <span className="font-mono">
+                      {comparisonModel.requiredVRAM}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span>Recommended GPU:</span>
-                    <span className="font-mono">{comparisonModel.recommendedGPU}</span>
+                    <span className="font-mono">
+                      {comparisonModel.recommendedGPU}
+                    </span>
                   </div>
                 </div>
               )}
@@ -115,4 +128,4 @@ export function SystemChecker({
       </div>
     </Card>
   );
-} 
+}
