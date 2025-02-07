@@ -122,7 +122,11 @@ export default function Home() {
     e.preventDefault();
 
     if (systemInfo) {
-      if (!confirm("Would you like to scan your system again? This is recommended if your hardware has changed recently.")) {
+      if (
+        !confirm(
+          "Would you like to scan your system again? This is recommended if your hardware has changed recently.",
+        )
+      ) {
         return;
       }
     }
@@ -131,13 +135,15 @@ export default function Home() {
 
     // Detect OS
     const platform = window.navigator.platform.toLowerCase();
-    const isWindows = platform.includes('win');
-    const isLinux = platform.includes('linux');
-    
+    const isWindows = platform.includes("win");
+    const isLinux = platform.includes("linux");
+
     const exeUrl = isLinux ? "/CanYouRunAI" : "/CanYouRunAI.exe";
 
     if (!isWindows && !isLinux) {
-      alert("Sorry, the system checker is only available for Windows and Linux at this time.");
+      alert(
+        "Sorry, the system checker is only available for Windows and Linux at this time.",
+      );
       setStatus("idle");
       return;
     }
@@ -162,7 +168,7 @@ export default function Home() {
     if (status === "idle") return null;
 
     // Detect OS for instructions
-    const isLinux = window.navigator.platform.toLowerCase().includes('linux');
+    const isLinux = window.navigator.platform.toLowerCase().includes("linux");
 
     return (
       <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
@@ -174,9 +180,10 @@ export default function Home() {
                   <div key={step} className="flex flex-col items-center">
                     <div
                       className={`w-10 h-10 rounded-full flex items-center justify-center border-2 
-                    ${status === step
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "border-muted text-muted-foreground"
+                    ${
+                      status === step
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-muted text-muted-foreground"
                     }`}
                     >
                       {i + 1}
@@ -203,7 +210,8 @@ export default function Home() {
                   <>
                     {isLinux ? (
                       <>
-                        Please open a terminal to downloaded file location and run:
+                        Please open a terminal to downloaded file location and
+                        run:
                         <br />
                         <code className="block bg-muted p-2 mt-2 rounded text-sm">
                           chmod +x CanYouRunAI

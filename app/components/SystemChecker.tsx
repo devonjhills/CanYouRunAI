@@ -2,12 +2,7 @@
 
 import React from "react";
 import { LLMModel } from "@/app/data/llm-models";
-import {
-  Cpu,
-  MemoryStick,
-  MonitorCog,
-  HardDrive,
-} from "lucide-react";
+import { Cpu, MemoryStick, MonitorCog, HardDrive } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ModelSelect } from "@/app/components/ModelSelect";

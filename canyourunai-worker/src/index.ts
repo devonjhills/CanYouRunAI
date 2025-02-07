@@ -49,7 +49,7 @@ export default {
 					JSON.stringify({
 						success: true,
 						systemInfo: data,
-						status: 'completed'
+						status: 'completed',
 					}),
 					{
 						headers: {
@@ -62,10 +62,10 @@ export default {
 				);
 			} catch (error) {
 				console.error('Error processing system info:', error);
-				return new Response(
-					JSON.stringify({ success: false, error: 'Failed to process system info' }),
-					{ status: 500, headers: { 'Content-Type': 'application/json' } },
-				);
+				return new Response(JSON.stringify({ success: false, error: 'Failed to process system info' }), {
+					status: 500,
+					headers: { 'Content-Type': 'application/json' },
+				});
 			}
 		}
 
@@ -93,10 +93,10 @@ export default {
 		if (request.method === 'GET' && (url.pathname === '/CanYouRunAI.exe' || url.pathname === '/CanYouRunAI')) {
 			const sessionId = url.searchParams.get('session');
 			const isWindows = url.pathname.endsWith('.exe');
-			
-			const exeResponse = await fetch(isWindows 
-				? 'https://your-origin.com/path/to/your/CanYouRunAI.exe'
-				: 'https://your-origin.com/path/to/your/CanYouRunAI');
+
+			const exeResponse = await fetch(
+				isWindows ? 'https://your-origin.com/path/to/your/CanYouRunAI.exe' : 'https://your-origin.com/path/to/your/CanYouRunAI',
+			);
 
 			if (!exeResponse.ok) {
 				return new Response('Failed to fetch executable', { status: 500 });
@@ -104,9 +104,7 @@ export default {
 			const exeData = await exeResponse.arrayBuffer();
 
 			// Add session ID to filename
-			const filename = sessionId 
-				? `${url.pathname}?session=${sessionId}` 
-				: url.pathname;
+			const filename = sessionId ? `${url.pathname}?session=${sessionId}` : url.pathname;
 
 			return new Response(exeData, {
 				status: 200,

@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://www.canyourunai.com
+
+# Sitemaps
+Sitemap: https://www.canyourunai.com/sitemap.xml

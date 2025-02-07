@@ -1,4 +1,16 @@
 import { Card } from "@/components/ui/card";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Privacy Policy",
+  description:
+    "Learn how CanYouRunAI.com protects your privacy and handles system information during compatibility checks.",
+  openGraph: {
+    title: "Privacy Policy | CanYouRunAI.com",
+    description:
+      "Our commitment to protecting your privacy while checking AI compatibility",
+  },
+};
 
 export default function PrivacyPolicy() {
   return (
