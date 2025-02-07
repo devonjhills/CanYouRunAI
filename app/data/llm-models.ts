@@ -3,7 +3,7 @@ export interface LLMRequirements {
   RAM: string;
   GPU: string;
   VRAM: string;
-  OS: string;
+  Storage: string;
 }
 
 export interface LLMModel {
@@ -27,7 +27,7 @@ export const llmModels: LLMModel[] = [
       RAM: "16.0 GB",
       GPU: "NVIDIA GTX 1060 6GB or better",
       VRAM: "6.0 GB",
-      OS: "windows",
+      Storage: "15.0 GB",
     },
     requiredRAM: "16.0 GB",
     requiredVRAM: "6.0 GB",
@@ -42,7 +42,7 @@ export const llmModels: LLMModel[] = [
       RAM: "32.0 GB",
       GPU: "NVIDIA RTX 2060 8GB or better",
       VRAM: "8.0 GB",
-      OS: "windows",
+      Storage: "15.0 GB",
     },
     requiredRAM: "32.0 GB",
     requiredVRAM: "8.0 GB",
@@ -58,7 +58,7 @@ export const llmModels: LLMModel[] = [
       RAM: "64.0 GB",
       GPU: "NVIDIA RTX 3080 or better",
       VRAM: "16.0 GB",
-      OS: "windows",
+      Storage: "15.0 GB",
     },
     requiredRAM: "64.0 GB",
     requiredVRAM: "16.0 GB",
@@ -74,7 +74,7 @@ export const llmModels: LLMModel[] = [
       RAM: "48.0 GB",
       GPU: "NVIDIA RTX 3070 or better",
       VRAM: "12.0 GB",
-      OS: "windows",
+      Storage: "15.0 GB",
     },
     requiredRAM: "48.0 GB",
     requiredVRAM: "12.0 GB",
@@ -90,7 +90,7 @@ export const llmModels: LLMModel[] = [
       RAM: "128.0 GB",
       GPU: "NVIDIA A100 (80GB) or better",
       VRAM: "80.0 GB",
-      OS: "linux",
+      Storage: "15.0 GB",
     },
     requiredRAM: "128.0 GB",
     requiredVRAM: "80.0 GB",
@@ -106,7 +106,7 @@ export const llmModels: LLMModel[] = [
       RAM: "128.0 GB or more",
       GPU: "NVIDIA A100 (80GB) or equivalent cluster setup.",
       VRAM: "80.0 GB per GPU node.",
-      OS: "linux",
+      Storage: "15.0 GB",
     },
     requiredRAM: "128.0 GB or more",
     requiredVRAM: "80.0 GB per GPU node.",
@@ -122,7 +122,7 @@ export const llmModels: LLMModel[] = [
       RAM: "256.0 GB recommended.",
       GPU: "NVIDIA H100/A100 GPUs with at least four nodes in a distributed setup.",
       VRAM: ">80.0 GB per node for optimal performance.",
-      OS: "linux",
+      Storage: "15.0 GB",
     },
     requiredRAM: "256.0 GB recommended.",
     requiredVRAM: ">80.0 GB per node for optimal performance.",
@@ -140,7 +140,7 @@ export const llmModels: LLMModel[] = [
       RAM: "32.0 GB",
       GPU: "NVIDIA RTX 3060 or better",
       VRAM: "10.0 GB",
-      OS: "windows",
+      Storage: "15.0 GB",
     },
     requiredRAM: "32.0 GB",
     requiredVRAM: "10.0 GB",
@@ -155,7 +155,7 @@ export const llmModels: LLMModel[] = [
       RAM: "64.0 GB",
       GPU: "NVIDIA RTX 4090 or better",
       VRAM: "24.0 GB",
-      OS: "windows",
+      Storage: "15.0 GB",
     },
     requiredRAM: "64.0 GB",
     requiredVRAM: "24.0 GB",
@@ -171,7 +171,7 @@ export const llmModels: LLMModel[] = [
       RAM: "128.0 GB",
       GPU: "NVIDIA RTX 3090 (24GB) or better",
       VRAM: "12.0 GB",
-      OS: "windows",
+      Storage: "15.0 GB",
     },
     requiredRAM: "128.0 GB",
     requiredVRAM: "12.0 GB",
@@ -187,7 +187,7 @@ export const llmModels: LLMModel[] = [
       RAM: "96.0 GB",
       GPU: "NVIDIA RTX 4090 (24GB) or dual RTX 3090",
       VRAM: "24.0 GB",
-      OS: "windows",
+      Storage: "15.0 GB",
     },
     requiredRAM: "96.0 GB",
     requiredVRAM: "24.0 GB",
@@ -202,7 +202,7 @@ export const llmModels: LLMModel[] = [
       RAM: "24.0 GB",
       GPU: "NVIDIA RTX 3060 or better",
       VRAM: "8.0 GB",
-      OS: "windows",
+      Storage: "15.0 GB",
     },
     requiredRAM: "24.0 GB",
     requiredVRAM: "8.0 GB",
@@ -217,7 +217,7 @@ export const llmModels: LLMModel[] = [
       RAM: "128.0 GB",
       GPU: "NVIDIA RTX 6000 Ada or dual RTX 4090",
       VRAM: "48.0 GB",
-      OS: "windows",
+      Storage: "15.0 GB",
     },
     requiredRAM: "128.0 GB",
     requiredVRAM: "48.0 GB",
@@ -232,7 +232,7 @@ export const llmModels: LLMModel[] = [
       RAM: "32.0 GB",
       GPU: "NVIDIA RTX 2080 Ti or better",
       VRAM: "10.0 GB",
-      OS: "windows",
+      Storage: "15.0 GB",
     },
     requiredRAM: "32.0 GB",
     requiredVRAM: "10.0 GB",
@@ -247,7 +247,7 @@ export const llmModels: LLMModel[] = [
       RAM: "64.0 GB",
       GPU: "NVIDIA RTX 4080 Super or better",
       VRAM: "16.0 GB",
-      OS: "windows",
+      Storage: "15.0 GB",
     },
     requiredRAM: "64.0 GB",
     requiredVRAM: "16.0 GB",
@@ -262,7 +262,7 @@ export const llmModels: LLMModel[] = [
       RAM: "48.0 GB",
       GPU: "NVIDIA RTX 3080 (12GB) or better",
       VRAM: "12.0 GB",
-      OS: "windows",
+      Storage: "15.0 GB",
     },
     requiredRAM: "48.0 GB",
     requiredVRAM: "12.0 GB",
@@ -277,7 +277,7 @@ export const llmModels: LLMModel[] = [
       RAM: "64.0 GB",
       GPU: "NVIDIA RTX 4090 or A4000 Ada",
       VRAM: "24.0 GB",
-      OS: "windows",
+      Storage: "15.0 GB",
     },
     requiredRAM: "64.0 GB",
     requiredVRAM: "24.0 GB",
@@ -331,8 +331,14 @@ interface ModelSummary {
   description: string | null;
 }
 
+export interface ModelConfig {
+  architecture: string;
+  contextLength: number;
+  parameterSize: string;
+}
+
 export interface AdvancedAnalysis {
-  modelConfig: any;
+  modelConfig: ModelConfig;
   modelParams: number;
   modelSummary: ModelSummary;
   systemSpecs: SystemSpecs;

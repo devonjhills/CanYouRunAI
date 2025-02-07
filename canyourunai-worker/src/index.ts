@@ -1,5 +1,5 @@
 interface SystemInfo {
-	OS: string;
+	Storage: string;
 	CPU: string;
 	RAM: string;
 	GPU: string;
@@ -49,26 +49,23 @@ export default {
 					JSON.stringify({
 						success: true,
 						systemInfo: data,
+						status: 'completed'
 					}),
 					{
 						headers: {
 							'Content-Type': 'application/json',
-							'Access-Control-Allow-Origin': origin,
+							'Access-Control-Allow-Origin': isAllowedOrigin ? origin : ALLOWED_ORIGINS[0],
 							'Access-Control-Allow-Credentials': 'true',
 							'Set-Cookie': `systemInfo=${encodeURIComponent(JSON.stringify(data))}; Domain=${cookieDomain}; Path=/; ${!isLocalhost ? 'SameSite=None; Secure;' : ''} Max-Age=86400`,
 						},
 					},
 				);
 			} catch (error) {
-				console.error('Worker error handling POST:', error);
-				return new Response(JSON.stringify({ success: false, error: 'Failed to store system info' }), {
-					status: 500,
-					headers: {
-						'Content-Type': 'application/json',
-						'Access-Control-Allow-Origin': request.headers.get('Origin') || ALLOWED_ORIGINS[0],
-						'Access-Control-Allow-Credentials': 'true',
-					},
-				});
+				console.error('Error processing system info:', error);
+				return new Response(
+					JSON.stringify({ success: false, error: 'Failed to process system info' }),
+					{ status: 500, headers: { 'Content-Type': 'application/json' } },
+				);
 			}
 		}
 
@@ -92,18 +89,24 @@ export default {
 			);
 		}
 
-		// Serve the .exe file
-		if (request.method === 'GET' && url.pathname === '/CanYouRunAI.exe') {
+		// Serve the executable file
+		if (request.method === 'GET' && (url.pathname === '/CanYouRunAI.exe' || url.pathname === '/CanYouRunAI')) {
 			const sessionId = url.searchParams.get('session');
-			const exeResponse = await fetch('https://your-origin.com/path/to/your/CanYouRunAI.exe');
+			const isWindows = url.pathname.endsWith('.exe');
+			
+			const exeResponse = await fetch(isWindows 
+				? 'https://your-origin.com/path/to/your/CanYouRunAI.exe'
+				: 'https://your-origin.com/path/to/your/CanYouRunAI');
 
 			if (!exeResponse.ok) {
-				return new Response('Failed to fetch .exe', { status: 500 });
+				return new Response('Failed to fetch executable', { status: 500 });
 			}
 			const exeData = await exeResponse.arrayBuffer();
 
 			// Add session ID to filename
-			const filename = sessionId ? `CanYouRunAI.exe?session=${sessionId}` : 'CanYouRunAI.exe';
+			const filename = sessionId 
+				? `${url.pathname}?session=${sessionId}` 
+				: url.pathname;
 
 			return new Response(exeData, {
 				status: 200,

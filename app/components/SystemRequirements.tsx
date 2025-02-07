@@ -125,8 +125,8 @@ export const SystemRequirements = () => {
                     icon={<HardDrive className="h-4 w-4 text-primary" />}
                   />
                   <RequirementItem
-                    label="OS"
-                    value={model.requirements.OS}
+                    label="Storage"
+                    value={model.requirements.Storage}
                     icon={<Monitor className="h-4 w-4 text-primary" />}
                   />
                 </div>

@@ -1,3 +1,9 @@
+// To build standalone executable:
+// go build -o CanYouRunAI.exe system_checker.go
+// OR GOOS=windows GOARCH=amd64 go build -o CanYouRunAI.exe system_checker.go
+// To build for Linux:
+// GOOS=linux GOARCH=amd64 go build -o CanYouRunAI system_checker.go
+
 package main
 
 import (
@@ -13,6 +19,9 @@ import (
 	"strings"
 	"io"
 	"io/ioutil"
+	"runtime"
+	"strconv"
+	"math"
 
 	"github.com/google/uuid"
 )
@@ -20,7 +29,7 @@ import (
 // SystemInfo holds the system details.
 type SystemInfo struct {
 	SessionID string `json:"sessionId"`
-	OS        string `json:"OS"`
+	Storage   string `json:"Storage"`
 	CPU       string `json:"CPU"`
 	RAM       string `json:"RAM"`
 	GPU       string `json:"GPU"`
@@ -37,42 +46,171 @@ func execWMIC(args ...string) (string, error) {
 	return string(out), nil
 }
 
-func getOSInfo() string {
-	// Create a temporary file for dxdiag output
-	tmpFile, err := ioutil.TempFile("", "dxdiag-*.txt")
+func getStorageSpaceLinux() string {
+	cmd := exec.Command("df", "-B1", "--output=avail", "/")
+	out, err := cmd.Output()
 	if err != nil {
-		log.Printf("Error creating temp file: %v", err)
+		log.Printf("Error retrieving storage info: %v", err)
 		return "Unknown"
 	}
-	defer os.Remove(tmpFile.Name())
-	tmpFile.Close()
-
-	// Run dxdiag and save output to the temp file
-	cmd := exec.Command("dxdiag", "/t", tmpFile.Name())
-	if err := cmd.Run(); err != nil {
-		log.Printf("Error running dxdiag: %v", err)
+	
+	// Skip header line and convert bytes to GB
+	lines := strings.Split(string(out), "\n")
+	if len(lines) < 2 {
 		return "Unknown"
 	}
+	
+	var bytesValue float64
+	fmt.Sscanf(strings.TrimSpace(lines[1]), "%f", &bytesValue)
+	return fmt.Sprintf("%.1f GB", bytesValue/(1024*1024*1024))
+}
 
-	// Read the dxdiag output file
-	content, err := ioutil.ReadFile(tmpFile.Name())
+// Modify getStorageSpace to be OS-aware
+func getStorageSpace() string {
+	if runtime.GOOS == "windows" {
+		return getStorageSpaceWindows()
+	}
+	return getStorageSpaceLinux()
+}
+
+// Rename existing Windows function
+func getStorageSpaceWindows() string {
+	out, err := execWMIC("logicaldisk", "where", "DriveType=3", "get", "FreeSpace", "/format:list")
 	if err != nil {
-		log.Printf("Error reading dxdiag output: %v", err)
+		log.Printf("Error retrieving storage info: %v", err)
 		return "Unknown"
 	}
-
-	lines := strings.Split(string(content), "\n")
-	for _, line := range lines {
-		line = strings.TrimSpace(line)
-		if strings.HasPrefix(line, "Operating System:") {
-			return strings.TrimSpace(strings.TrimPrefix(line, "Operating System:"))
+	
+	var totalFreeGB float64
+	for _, line := range strings.Split(out, "\n") {
+		if strings.HasPrefix(line, "FreeSpace=") {
+			val := strings.TrimSpace(strings.TrimPrefix(line, "FreeSpace="))
+			var bytesValue float64
+			fmt.Sscanf(val, "%f", &bytesValue)
+			totalFreeGB += bytesValue / (1024 * 1024 * 1024)
 		}
+	}
+	
+	if totalFreeGB > 0 {
+		return fmt.Sprintf("%.1f GB", totalFreeGB)
 	}
 	return "Unknown"
 }
 
 // getCPUInfo retrieves the CPU name.
 func getCPUInfo() string {
+	if runtime.GOOS == "windows" {
+		return getCPUInfoWindows()
+	}
+	return getCPUInfoLinux()
+}
+
+// getRAMInfo retrieves the total physical memory (in GB).
+func getRAMInfo() string {
+	if runtime.GOOS == "windows" {
+		return getRAMInfoWindows()
+	}
+	return getRAMInfoLinux()
+}
+
+func getCPUInfoLinux() string {
+	cmd := exec.Command("cat", "/proc/cpuinfo")
+	out, err := cmd.Output()
+	if err != nil {
+		log.Printf("Error retrieving CPU info: %v", err)
+		return "Unknown"
+	}
+	
+	lines := strings.Split(string(out), "\n")
+	for _, line := range lines {
+		if strings.HasPrefix(line, "model name") {
+			return strings.TrimSpace(strings.TrimPrefix(line, "model name\t:"))
+		}
+	}
+	return "Unknown"
+}
+
+func getRAMInfoLinux() string {
+	cmd := exec.Command("free", "-b")
+	out, err := cmd.Output()
+	if err != nil {
+		log.Printf("Error retrieving RAM info: %v", err)
+		return "Unknown"
+	}
+	
+	lines := strings.Split(string(out), "\n")
+	if len(lines) < 2 {
+		return "Unknown"
+	}
+	
+	fields := strings.Fields(lines[1])
+	if len(fields) < 2 {
+		return "Unknown"
+	}
+	
+	totalBytes, err := strconv.ParseFloat(fields[1], 64)
+	if err != nil {
+		return "Unknown"
+	}
+	
+	gb := math.Ceil(totalBytes / (1024 * 1024 * 1024))
+	return fmt.Sprintf("%.0f GB", gb)
+}
+
+func getGPUInfoLinux() (string, string) {
+	// Try lspci first for GPU model
+	gpuCmd := exec.Command("lspci", "-v")
+	gpuOut, err := gpuCmd.Output()
+	if err != nil {
+		log.Printf("Error retrieving GPU info: %v", err)
+		return "Unknown", "Unknown"
+	}
+	
+	var gpuName string
+	lines := strings.Split(string(gpuOut), "\n")
+	for _, line := range lines {
+		if strings.Contains(strings.ToLower(line), "vga") || 
+		   strings.Contains(strings.ToLower(line), "nvidia") || 
+		   strings.Contains(strings.ToLower(line), "amd") {
+			gpuName = strings.TrimSpace(strings.Split(line, ":")[1])
+			break
+		}
+	}
+	
+	// Try nvidia-smi for VRAM if available
+	vramCmd := exec.Command("nvidia-smi", "--query-gpu=memory.total", "--format=csv,noheader,nounits")
+	vramOut, err := vramCmd.Output()
+	if err == nil {
+		vramMB, err := strconv.ParseFloat(strings.TrimSpace(string(vramOut)), 64)
+		if err == nil {
+			gb := math.Ceil(vramMB / 1024)
+			return gpuName, fmt.Sprintf("%.0f GB", gb)
+		}
+	}
+	
+	// If nvidia-smi fails, try checking /sys/class/drm for AMD cards
+	files, err := ioutil.ReadDir("/sys/class/drm")
+	if err == nil {
+		for _, file := range files {
+			if strings.HasPrefix(file.Name(), "card") {
+				vramPath := fmt.Sprintf("/sys/class/drm/%s/device/mem_info_vram_total", file.Name())
+				vramBytes, err := ioutil.ReadFile(vramPath)
+				if err == nil {
+					vramKB, err := strconv.ParseFloat(strings.TrimSpace(string(vramBytes)), 64)
+					if err == nil {
+						gb := math.Ceil(vramKB / (1024 * 1024))
+						return gpuName, fmt.Sprintf("%.0f GB", gb)
+					}
+				}
+			}
+		}
+	}
+	
+	return gpuName, "Unknown"
+}
+
+// Rename existing Windows functions
+func getCPUInfoWindows() string {
 	out, err := execWMIC("cpu", "get", "Name", "/format:list")
 	if err != nil {
 		log.Printf("Error retrieving CPU info: %v", err)
@@ -86,8 +224,7 @@ func getCPUInfo() string {
 	return "Unknown"
 }
 
-// getRAMInfo retrieves the total physical memory (in GB).
-func getRAMInfo() string {
+func getRAMInfoWindows() string {
 	out, err := execWMIC("ComputerSystem", "get", "TotalPhysicalMemory", "/format:list")
 	if err != nil {
 		log.Printf("Error retrieving RAM info: %v", err)
@@ -98,14 +235,14 @@ func getRAMInfo() string {
 			val := strings.TrimSpace(strings.TrimPrefix(line, "TotalPhysicalMemory="))
 			var bytesValue float64
 			fmt.Sscanf(val, "%f", &bytesValue)
-			gb := bytesValue / (1024 * 1024 * 1024)
-			return fmt.Sprintf("%.1f GB", gb)
+			gb := math.Ceil(bytesValue / (1024 * 1024 * 1024))
+			return fmt.Sprintf("%.0f GB", gb)
 		}
 	}
 	return "Unknown"
 }
 
-func getGPUInfo() (string, string) {
+func getGPUInfoWindows() (string, string) {
 	// Create a temporary file for dxdiag output
 	tmpFile, err := ioutil.TempFile("", "dxdiag-*.txt")
 	if err != nil {
@@ -149,8 +286,8 @@ func getGPUInfo() (string, string) {
 				mbValue := matches[1]
 				var mb float64
 				fmt.Sscanf(mbValue, "%f", &mb)
-				gb := mb / 1024
-				vram = fmt.Sprintf("%.1f GB", gb)
+				gb := math.Ceil(mb / 1024)
+				vram = fmt.Sprintf("%.0f GB", gb)
 				break
 			}
 		}
@@ -166,6 +303,13 @@ func getGPUInfo() (string, string) {
 	return gpuName, vram
 }
 
+// Add this function to handle OS-specific GPU info retrieval
+func getGPUInfo() (string, string) {
+	if runtime.GOOS == "windows" {
+		return getGPUInfoWindows()
+	}
+	return getGPUInfoLinux()
+}
 
 func main() {
 	isDev := flag.Bool("dev", false, "set to true to use development endpoints")
@@ -184,14 +328,14 @@ func main() {
 		sessionID = uuid.New().String()
 	}
 
-	osInfo := getOSInfo()  // Now using dxdiag for OS info
+	storageInfo := getStorageSpace()
 	cpu := getCPUInfo()
 	ram := getRAMInfo()
 	gpu, vram := getGPUInfo()
 
 	sysInfo := SystemInfo{
 		SessionID: sessionID,
-		OS:        osInfo,
+		Storage:   storageInfo,
 		CPU:       cpu,
 		RAM:       ram,
 		GPU:       gpu,
@@ -199,8 +343,8 @@ func main() {
 	}
 
 	fmt.Println("System Information:")
-	fmt.Printf("Session ID: %s\nOS: %s\nCPU: %s\nRAM: %s\nGPU: %s\nVRAM: %s\n",
-		sysInfo.SessionID, sysInfo.OS, sysInfo.CPU, sysInfo.RAM, sysInfo.GPU, sysInfo.VRAM)
+	fmt.Printf("Session ID: %s\nStorage: %s\nCPU: %s\nRAM: %s\nGPU: %s\nVRAM: %s\n",
+		sysInfo.SessionID, sysInfo.Storage, sysInfo.CPU, sysInfo.RAM, sysInfo.GPU, sysInfo.VRAM)
 
 	payload, err := json.Marshal(sysInfo)
 	if err != nil {

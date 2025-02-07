@@ -63,30 +63,31 @@ export default function Home() {
         const data = (await response.json()) as {
           success: boolean;
           systemInfo?: SystemInfo;
+          status?: string;
         };
 
         console.log("API response:", data);
 
-        if (
-          data.success &&
-          data.systemInfo &&
-          data.systemInfo.CPU &&
-          data.systemInfo.RAM &&
-          data.systemInfo.GPU &&
-          data.systemInfo.VRAM &&
-          data.systemInfo.OS
-        ) {
-          setStatus("gathering");
-          await new Promise((resolve) => setTimeout(resolve, 1000));
+        if (data.success && data.systemInfo) {
+          if (
+            data.systemInfo.CPU &&
+            data.systemInfo.RAM &&
+            data.systemInfo.GPU &&
+            data.systemInfo.VRAM &&
+            data.systemInfo.Storage
+          ) {
+            setStatus("gathering");
+            await new Promise((resolve) => setTimeout(resolve, 1000));
 
-          // Store in localStorage or cookie
-          storeSystemInfo(data.systemInfo);
-          setSystemInfo(data.systemInfo);
-          setStatus("finished");
+            // Store in localStorage or cookie
+            storeSystemInfo(data.systemInfo);
+            setSystemInfo(data.systemInfo);
+            setStatus("finished");
 
-          const element = document.getElementById("system-requirements");
-          if (element) {
-            element.scrollIntoView({ behavior: "smooth", block: "start" });
+            const element = document.getElementById("system-requirements");
+            if (element) {
+              element.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
           }
         }
       } catch (error) {
@@ -117,31 +118,37 @@ export default function Home() {
     setComparisonModel(model);
   };
 
-  const WINDOWS_EXE_URL = "/CanYouRunAI.exe";
-
   const handleSystemCheck = (e: React.MouseEvent) => {
     e.preventDefault();
 
-    // If we already have system info, show confirmation dialog
     if (systemInfo) {
-      if (
-        !confirm(
-          "Would you like to scan your system again? This is recommended if your hardware has changed recently.",
-        )
-      ) {
+      if (!confirm("Would you like to scan your system again? This is recommended if your hardware has changed recently.")) {
         return;
       }
     }
 
     setStatus("downloading");
 
-    fetch(WINDOWS_EXE_URL)
+    // Detect OS
+    const platform = window.navigator.platform.toLowerCase();
+    const isWindows = platform.includes('win');
+    const isLinux = platform.includes('linux');
+    
+    const exeUrl = isLinux ? "/CanYouRunAI" : "/CanYouRunAI.exe";
+
+    if (!isWindows && !isLinux) {
+      alert("Sorry, the system checker is only available for Windows and Linux at this time.");
+      setStatus("idle");
+      return;
+    }
+
+    fetch(exeUrl)
       .then((response) => response.blob())
       .then((blob) => {
         const url = window.URL.createObjectURL(blob);
         const downloadLink = document.createElement("a");
         downloadLink.href = url;
-        downloadLink.download = "CanYouRunAI.exe";
+        downloadLink.download = isLinux ? "CanYouRunAI" : "CanYouRunAI.exe";
         document.body.appendChild(downloadLink);
         downloadLink.click();
         document.body.removeChild(downloadLink);
@@ -154,6 +161,9 @@ export default function Home() {
   const StatusOverlay = () => {
     if (status === "idle") return null;
 
+    // Detect OS for instructions
+    const isLinux = window.navigator.platform.toLowerCase().includes('linux');
+
     return (
       <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
         <Card className="w-full max-w-md p-6">
@@ -164,10 +174,9 @@ export default function Home() {
                   <div key={step} className="flex flex-col items-center">
                     <div
                       className={`w-10 h-10 rounded-full flex items-center justify-center border-2 
-                    ${
-                      status === step
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-muted text-muted-foreground"
+                    ${status === step
+                      ? "border-primary bg-primary text-primary-foreground"
+                      : "border-muted text-muted-foreground"
                     }`}
                     >
                       {i + 1}
@@ -192,7 +201,19 @@ export default function Home() {
                   "Your download should begin automatically..."}
                 {status === "waiting" && (
                   <>
-                    Please run the downloaded CanYouRunAI.exe file
+                    {isLinux ? (
+                      <>
+                        Please open a terminal to downloaded file location and run:
+                        <br />
+                        <code className="block bg-muted p-2 mt-2 rounded text-sm">
+                          chmod +x CanYouRunAI
+                          <br />
+                          ./CanYouRunAI
+                        </code>
+                      </>
+                    ) : (
+                      "Please run the downloaded CanYouRunAI.exe file"
+                    )}
                     <br />
                     <span className="text-xs mt-2 block">
                       This tool only collects system specifications, no personal

@@ -1,26 +1,15 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { LLMModel } from "@/app/data/llm-models";
 import {
   Cpu,
   MemoryStick,
   MonitorCog,
   HardDrive,
-  Monitor,
-  X as XIcon,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { ModelSelect } from "@/app/components/ModelSelect";
 
 export interface SystemInfo {
@@ -28,7 +17,7 @@ export interface SystemInfo {
   RAM: string;
   GPU: string;
   VRAM: string;
-  OS: string;
+  Storage: string;
 }
 
 interface SystemCheckerProps {
@@ -44,18 +33,6 @@ function compareRAMorVRAM(actual: string, required: string): boolean {
   const actualGB = parseFloat(actual.split(" ")[0]);
   const requiredGB = parseFloat(required.split(" ")[0]);
   return actualGB >= requiredGB;
-}
-
-function compareOS(actual: string, required: string): boolean {
-  if (actual === "Unknown") return false;
-  const actualMatch = actual.toLowerCase().match(/windows (\d+)/);
-  const requiredMatch = required.toLowerCase().match(/windows (\d+)/);
-  if (actualMatch && requiredMatch) {
-    const actualVersion = parseInt(actualMatch[1]);
-    const requiredVersion = parseInt(requiredMatch[1]);
-    return actualVersion >= requiredVersion;
-  }
-  return actual.toLowerCase() === required.toLowerCase();
 }
 
 export function SystemChecker({
@@ -150,14 +127,11 @@ export function SystemChecker({
                   requirement: comparisonModel?.requirements.VRAM || "N/A",
                 },
                 {
-                  icon: <Monitor className="w-5 h-5 text-primary" />,
-                  label: "OS",
-                  value: systemInfo?.OS || "Unknown",
-                  isValid:
-                    systemInfo?.OS &&
-                    comparisonModel?.requirements.OS &&
-                    compareOS(systemInfo.OS, comparisonModel.requirements.OS),
-                  requirement: comparisonModel?.requirements.OS || "N/A",
+                  icon: <HardDrive className="w-5 h-5 text-primary" />,
+                  label: "Storage",
+                  value: systemInfo?.Storage || "Unknown",
+                  isValid: systemInfo?.Storage !== "Unknown",
+                  requirement: comparisonModel?.requirements.Storage || "N/A",
                 },
               ].map((spec) => (
                 <div key={spec.label} className="flex gap-4">
@@ -226,9 +200,9 @@ export function SystemChecker({
                       value: systemInfo.VRAM,
                     },
                     {
-                      icon: <Monitor className="w-6 h-6 text-primary" />,
-                      label: "Operating System",
-                      value: systemInfo.OS,
+                      icon: <HardDrive className="w-6 h-6 text-primary" />,
+                      label: "Storage",
+                      value: systemInfo.Storage,
                     },
                   ].map((item) => (
                     <div

@@ -52,17 +52,7 @@ export const Footer = () => {
           <ul className="space-y-2">
             <li>
               <a
-                href="https://twitter.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--primary))] transition-colors"
-              >
-                Twitter
-              </a>
-            </li>
-            <li>
-              <a
-                href="https://github.com"
+                href="https://github.com/devonjhills"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--primary))] transition-colors"
@@ -72,12 +62,10 @@ export const Footer = () => {
             </li>
             <li>
               <a
-                href="https://discord.com"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="mailto:support@canyourunai.com"
                 className="text-sm text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--primary))] transition-colors"
               >
-                Discord
+                Email Support
               </a>
             </li>
           </ul>
