@@ -2,20 +2,13 @@
 
 import { SystemRequirements } from "./components/SystemRequirements";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { llmModels } from "@/app/data/llm-models";
 import { useEffect, useState } from "react";
 import { LLMModel } from "@/app/data/llm-models";
 import { SystemInfo, SystemChecker } from "@/app/components/SystemChecker";
 import Cookies from "js-cookie";
-import { type SystemSpecs, type AdvancedAnalysis } from "./data/llm-models";
+import type { SystemSpecs, AdvancedAnalysis } from "./data/llm-models";
 import { AdvancedAnalysisSection } from "./components/AdvancedAnalysis";
 import { ModelSelect } from "@/app/components/ModelSelect";
 
@@ -254,36 +247,10 @@ export default function Home() {
     }
   };
 
-  const compareRAMorVRAM = (actual: string, required: string): boolean => {
-    if (actual === "Unknown") return false;
-    const actualGB = parseFloat(actual.split(" ")[0]);
-    const requiredGB = parseFloat(required.split(" ")[0]);
-    return actualGB >= requiredGB;
-  };
-
-  const compareOS = (actual: string, required: string): boolean => {
-    if (actual === "Unknown") return false;
-    const actualMatch = actual.toLowerCase().match(/windows (\d+)/);
-    const requiredMatch = required.toLowerCase().match(/windows (\d+)/);
-    if (actualMatch && requiredMatch) {
-      const actualVersion = parseInt(actualMatch[1]);
-      const requiredVersion = parseInt(requiredMatch[1]);
-      return actualVersion >= requiredVersion;
-    }
-    return actual.toLowerCase() === required.toLowerCase();
-  };
-
   const runAdvancedCheck = async () => {
     setLoading(true);
     setError(null);
     try {
-      // Check if we have valid system info or need to use placeholders
-      const usingPlaceholders =
-        !systemInfo ||
-        systemInfo.RAM === "Unknown" ||
-        systemInfo.VRAM === "Unknown" ||
-        systemInfo.GPU === "Unknown";
-
       // Build systemSpecs with fallback values if systemInfo is undefined or contains "Unknown"
       const specs: SystemSpecs = {
         totalRam:
