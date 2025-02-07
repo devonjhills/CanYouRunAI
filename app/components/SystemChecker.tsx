@@ -21,6 +21,8 @@ interface SystemCheckerProps {
   models: LLMModel[];
   onModelSelect: (modelId: string) => void;
   lastChecked?: string | null;
+  onSystemInfoUpdate?: (info: SystemInfo) => void;
+  defaultTab?: "comparison" | "my-system";
 }
 
 function compareRAMorVRAM(actual: string, required: string): boolean {
@@ -36,22 +38,34 @@ export function SystemChecker({
   models,
   onModelSelect,
   lastChecked,
+  defaultTab = "comparison",
 }: SystemCheckerProps) {
   return (
-    <Card className="w-full overflow-hidden" id="system-requirements">
-      <div className="border-b bg-muted/50 px-6 py-4">
-        <h2 className="text-2xl font-semibold tracking-tight">
+    <Card
+      className="w-full overflow-hidden h-full border-2"
+      id="system-requirements"
+    >
+      <div className="border-b bg-background px-6 py-4">
+        <h2 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-primary/90 to-primary bg-clip-text text-transparent">
           System Requirements Check
         </h2>
       </div>
 
-      <Tabs defaultValue="comparison" className="w-full">
+      <Tabs defaultValue={defaultTab} className="w-full">
         <div className="px-6 pt-4">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="comparison">
+          <TabsList className="grid w-full grid-cols-2 bg-muted/50">
+            <TabsTrigger
+              value="comparison"
+              className="data-[state=active]:bg-background data-[state=active]:text-primary"
+            >
               Requirements Comparison
             </TabsTrigger>
-            <TabsTrigger value="my-system">My Computer Details</TabsTrigger>
+            <TabsTrigger
+              value="my-system"
+              className="data-[state=active]:bg-background data-[state=active]:text-primary"
+            >
+              My Computer Details
+            </TabsTrigger>
           </TabsList>
         </div>
 
@@ -67,12 +81,12 @@ export function SystemChecker({
 
             <div className="flex gap-8 mb-4">
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-foreground/90">
+                <h3 className="text-lg font-semibold text-foreground">
                   Your System
                 </h3>
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-foreground/90">
+                <h3 className="text-lg font-semibold text-foreground">
                   {comparisonModel?.name || "Select a model to view"}{" "}
                   Requirements
                 </h3>
@@ -131,10 +145,10 @@ export function SystemChecker({
               ].map((spec) => (
                 <div key={spec.label} className="flex gap-4">
                   <div
-                    className={`flex-1 flex items-center space-x-3 p-3 rounded-lg border transition-colors ${
+                    className={`flex-1 flex items-center space-x-3 p-3 rounded-lg border-2 transition-all ${
                       spec.isValid
-                        ? "bg-green-500/5 border-green-500/20"
-                        : "bg-red-500/5 border-red-500/20"
+                        ? "bg-green-500/5 border-green-500/30 hover:border-green-500/50"
+                        : "bg-red-500/5 border-red-500/30 hover:border-red-500/50"
                     }`}
                   >
                     {spec.icon}
@@ -142,25 +156,27 @@ export function SystemChecker({
                       {spec.label}:
                     </span>
                     <span
-                      className={`font-medium ${
-                        spec.isValid ? "text-green-500" : "text-red-500"
+                      className={`font-semibold ${
+                        spec.isValid ? "text-green-600" : "text-red-600"
                       }`}
                     >
                       {spec.value}
                     </span>
                   </div>
                   <div
-                    className={`flex-1 flex items-center space-x-3 p-3 rounded-lg border transition-colors ${
+                    className={`flex-1 flex items-center space-x-3 p-3 rounded-lg border-2 transition-all ${
                       spec.isValid
-                        ? "bg-green-500/5 border-green-500/20"
-                        : "bg-red-500/5 border-red-500/20"
+                        ? "bg-green-500/5 border-green-500/30 hover:border-green-500/50"
+                        : "bg-red-500/5 border-red-500/30 hover:border-red-500/50"
                     }`}
                   >
                     {spec.icon}
                     <span className="text-muted-foreground font-medium">
                       {spec.label}:
                     </span>
-                    <span className="font-medium">{spec.requirement}</span>
+                    <span className="font-semibold text-foreground">
+                      {spec.requirement}
+                    </span>
                   </div>
                 </div>
               ))}
@@ -170,73 +186,66 @@ export function SystemChecker({
 
         <TabsContent value="my-system">
           <div className="p-6 pt-4">
-            {systemInfo ? (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {[
-                    {
-                      icon: <Cpu className="w-6 h-6 text-primary" />,
-                      label: "CPU",
-                      value: systemInfo.CPU,
-                    },
-                    {
-                      icon: <MemoryStick className="w-6 h-6 text-primary" />,
-                      label: "RAM",
-                      value: systemInfo.RAM,
-                    },
-                    {
-                      icon: <MonitorCog className="w-6 h-6 text-primary" />,
-                      label: "GPU",
-                      value: systemInfo.GPU,
-                    },
-                    {
-                      icon: <HardDrive className="w-6 h-6 text-primary" />,
-                      label: "VRAM",
-                      value: systemInfo.VRAM,
-                    },
-                    {
-                      icon: <HardDrive className="w-6 h-6 text-primary" />,
-                      label: "Storage",
-                      value: systemInfo.Storage,
-                    },
-                  ].map((item) => (
-                    <div
-                      key={item.label}
-                      className="flex items-start space-x-4 p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
-                    >
-                      <div className="mt-1">{item.icon}</div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-foreground/90">
-                          {item.label}
-                        </h3>
-                        <p className="text-lg break-words text-foreground/80">
-                          {item.value}
-                        </p>
-                      </div>
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[
+                  {
+                    icon: <Cpu className="w-6 h-6 text-primary" />,
+                    label: "CPU",
+                    value: systemInfo?.CPU,
+                  },
+                  {
+                    icon: <MemoryStick className="w-6 h-6 text-primary" />,
+                    label: "RAM",
+                    value: systemInfo?.RAM,
+                  },
+                  {
+                    icon: <MonitorCog className="w-6 h-6 text-primary" />,
+                    label: "GPU",
+                    value: systemInfo?.GPU,
+                  },
+                  {
+                    icon: <HardDrive className="w-6 h-6 text-primary" />,
+                    label: "VRAM",
+                    value: systemInfo?.VRAM,
+                  },
+                  {
+                    icon: <HardDrive className="w-6 h-6 text-primary" />,
+                    label: "Storage",
+                    value: systemInfo?.Storage,
+                  },
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className="flex items-start space-x-4 p-4 rounded-lg border-2 bg-card hover:bg-accent/20 hover:border-primary/50 transition-all"
+                  >
+                    <div className="mt-1">{item.icon}</div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-foreground">
+                        {item.label}
+                      </h3>
+                      <p className="text-lg break-words text-foreground/80">
+                        {item.value || "Not specified"}
+                      </p>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
+              </div>
+              {lastChecked && (
                 <p className="text-sm text-muted-foreground text-center">
-                  {lastChecked
-                    ? `Last checked: ${new Date(lastChecked).toLocaleString(
-                        undefined,
-                        {
-                          year: "numeric",
-                          month: "numeric",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        },
-                      )}`
-                    : "Last checked: Unknown"}
+                  {`Last checked: ${new Date(lastChecked).toLocaleString(
+                    undefined,
+                    {
+                      year: "numeric",
+                      month: "numeric",
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    },
+                  )}`}
                 </p>
-              </div>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                No system information available. Please run the system check
-                tool.
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </TabsContent>
       </Tabs>

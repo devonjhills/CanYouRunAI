@@ -11,6 +11,7 @@ import Cookies from "js-cookie";
 import type { SystemSpecs, AdvancedAnalysis } from "./data/llm-models";
 import { AdvancedAnalysisSection } from "./components/AdvancedAnalysis";
 import { ModelSelect } from "@/app/components/ModelSelect";
+import { ManualSpecsEntry } from "@/app/components/ManualSpecsEntry";
 
 const isProd = process.env.NODE_ENV === "production";
 
@@ -330,32 +331,25 @@ export default function Home() {
 
   return (
     <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="py-16 md:py-24 px-6 bg-gradient-to-b from-background to-muted/30">
-        <Card className="neo-card max-w-4xl mx-auto mb-12 p-8 md:p-12 border-2 shadow-2xl relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent pointer-events-none" />
-          <div className="relative space-y-8">
-            <div className="space-y-4">
-              <h1 className="text-4xl md:text-6xl font-black leading-tight">
-                Can I Run this LLM{" "}
-                <span className="text-primary">locally?</span>
-              </h1>
-              <p className="text-xl md:text-2xl text-muted-foreground">
-                Analyze your computer in seconds.{" "}
-                <span className="font-bold text-foreground">100% Free.</span>
-              </p>
-            </div>
+      <section className="py-12 px-6 bg-gradient-to-b from-background to-muted/30">
+        <div className="max-w-6xl mx-auto space-y-12">
+          {/* Hero Section with System Check */}
+          <Card className="neo-card p-8 border-2 shadow-2xl relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent pointer-events-none" />
+            <div className="relative space-y-8">
+              <div className="max-w-2xl">
+                <h1 className="text-4xl md:text-5xl font-black leading-tight mb-4">
+                  Can I Run this LLM{" "}
+                  <span className="text-primary">locally?</span>
+                </h1>
+                <p className="text-lg md:text-xl text-muted-foreground">
+                  Analyze your computer in seconds.{" "}
+                  <span className="font-bold text-foreground">100% Free.</span>
+                </p>
+              </div>
 
-            {/* Action Steps */}
-            <div className="mt-12 space-y-8 divide-y divide-border">
-              {/* Step 1 */}
-              <div className="space-y-4 pt-4">
-                <div className="flex items-center gap-4">
-                  <span className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-primary-foreground font-bold text-lg shadow-lg">
-                    1
-                  </span>
-                  <h2 className="text-xl font-bold">Select your LLM</h2>
-                </div>
+              {/* Model Selection and Actions */}
+              <div className="space-y-6">
                 <ModelSelect
                   models={llmModels}
                   selectedModelId={selectedModel?.id}
@@ -364,78 +358,100 @@ export default function Home() {
                   triggerClassName="neo-input w-full p-4 text-lg hover:border-primary/50 transition-colors"
                   placeholder="Choose a model from our list"
                 />
-              </div>
 
-              {/* Step 2 */}
-              <div className="space-y-4 pt-8">
-                <div className="flex items-center gap-4">
-                  <span className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-primary-foreground font-bold text-lg shadow-lg">
-                    2
-                  </span>
-                  <h2 className="text-xl font-bold">Check your system</h2>
-                </div>
-                <div className="space-y-2">
-                  <Button
-                    className="neo-button w-full text-lg py-6 bg-primary hover:bg-primary/90 transition-colors shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-                    onClick={handleSystemCheck}
-                    disabled={!selectedModel}
-                  >
-                    <span>
-                      {selectedModel
-                        ? "Can You Run This AI?"
-                        : "Please select a model first"}
-                    </span>
-                  </Button>
-                  {lastChecked && (
-                    <p className="text-sm text-muted-foreground text-center">
-                      Last system check:{" "}
-                      {new Date(lastChecked).toLocaleString(undefined, {
-                        year: "numeric",
-                        month: "numeric",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
-                  )}
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="flex items-center gap-4">
+                    <Button
+                      className="flex-1 neo-button py-6 bg-primary hover:bg-primary/90 transition-colors shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+                      onClick={handleSystemCheck}
+                      disabled={!selectedModel}
+                    >
+                      Download System Checker
+                    </Button>
+
+                    <div className="flex flex-col items-center gap-1">
+                      <div className="w-[1px] h-4 bg-border" />
+                      <span className="text-xs font-medium text-muted-foreground">
+                        OR
+                      </span>
+                      <div className="w-[1px] h-4 bg-border" />
+                    </div>
+
+                    <ManualSpecsEntry
+                      onSubmit={(info) => {
+                        storeSystemInfo(info);
+                        setSystemInfo(info);
+                        const timestamp = new Date().toISOString();
+                        setLastChecked(timestamp);
+                        if (isProd) {
+                          Cookies.set("systemInfoTimestamp", timestamp, {
+                            expires: 1,
+                            secure: true,
+                            sameSite: "none",
+                          });
+                        } else {
+                          localStorage.setItem(
+                            "systemInfoTimestamp",
+                            timestamp,
+                          );
+                        }
+                        const element = document.getElementById(
+                          "system-requirements",
+                        );
+                        if (element) {
+                          element.scrollIntoView({ behavior: "smooth" });
+                        }
+                      }}
+                      initialValues={systemInfo}
+                      trigger={
+                        <Button
+                          variant="outline"
+                          className="flex-1 neo-button py-6 hover:bg-accent transition-colors shadow-lg hover:shadow-xl text-lg"
+                        >
+                          Enter Specs Manually
+                        </Button>
+                      }
+                    />
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </Card>
-      </section>
+          </Card>
 
-      {/* Results Section */}
-      <section className="bg-muted/30 py-16 px-6">
-        <div className="max-w-6xl mx-auto space-y-16">
-          {/* System Info */}
-          <div className="space-y-6" id="system-requirements">
-            <SystemChecker
-              systemInfo={systemInfo}
-              comparisonModel={comparisonModel}
-              models={llmModels}
-              onModelSelect={(id) =>
-                setComparisonModel(llmModels.find((m) => m.id === id))
-              }
-              lastChecked={lastChecked}
-            />
-          </div>
+          {/* System Requirements Check */}
+          {systemInfo && (
+            <div id="system-requirements">
+              <SystemChecker
+                systemInfo={systemInfo}
+                comparisonModel={comparisonModel}
+                models={llmModels}
+                onModelSelect={(id) =>
+                  setComparisonModel(llmModels.find((m) => m.id === id))
+                }
+                lastChecked={lastChecked}
+              />
+            </div>
+          )}
 
-          <div id="advanced-analysis">
-            <AdvancedAnalysisSection
-              analysis={analysis}
-              loading={loading}
-              modelId={modelId}
-              setModelId={setModelId}
-              runAdvancedCheck={runAdvancedCheck}
-              error={error}
-            />
-          </div>
+          {/* Rest of the sections */}
+          <section className="bg-muted/30 py-16">
+            <div className="space-y-16">
+              <div id="advanced-analysis">
+                <AdvancedAnalysisSection
+                  analysis={analysis}
+                  loading={loading}
+                  modelId={modelId}
+                  setModelId={setModelId}
+                  runAdvancedCheck={runAdvancedCheck}
+                  error={error}
+                />
+              </div>
 
-          {/* Model Requirements */}
-          <div id="model-requirements" className="space-y-6">
-            <SystemRequirements />
-          </div>
+              <div id="model-requirements" className="space-y-6">
+                <SystemRequirements />
+              </div>
+            </div>
+          </section>
         </div>
       </section>
 
