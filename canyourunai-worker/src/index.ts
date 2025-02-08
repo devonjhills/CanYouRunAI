@@ -4,6 +4,7 @@ interface SystemInfo {
 	RAM: string;
 	GPU: string;
 	VRAM: string;
+	GPUBandwidth?: number;
 	timestamp?: number;
 }
 

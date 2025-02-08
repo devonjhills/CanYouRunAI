@@ -14,11 +14,9 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"regexp"
 	"os/exec"
 	"strings"
 	"io"
-	"io/ioutil"
 	"runtime"
 	"strconv"
 	"math"
@@ -34,6 +32,7 @@ type SystemInfo struct {
 	RAM       string `json:"RAM"`
 	GPU       string `json:"GPU"`
 	VRAM      string `json:"VRAM"`
+	GPUBandwidth float64 `json:"GPUBandwidth"`
 }
 
 // execWMIC runs a WMIC command with the given arguments and returns the output.
@@ -157,56 +156,87 @@ func getRAMInfoLinux() string {
 	return fmt.Sprintf("%.0f GB", gb)
 }
 
-func getGPUInfoLinux() (string, string) {
-	// Try lspci first for GPU model
-	gpuCmd := exec.Command("lspci", "-v")
-	gpuOut, err := gpuCmd.Output()
+func getGPUBandwidthNvidia() float64 {
+	cmd := exec.Command("nvidia-smi", "--query-gpu=memory_bus_width,memory_clock", "--format=csv,noheader")
+	out, err := cmd.Output()
 	if err != nil {
-		log.Printf("Error retrieving GPU info: %v", err)
-		return "Unknown", "Unknown"
+		return 0
 	}
+
+	fields := strings.Split(strings.TrimSpace(string(out)), ",")
+	if len(fields) != 2 {
+		return 0
+	}
+
+	busWidth, err1 := strconv.ParseFloat(strings.TrimSpace(fields[0]), 64)
+	memClock, err2 := strconv.ParseFloat(strings.TrimSpace(fields[1]), 64)
 	
-	var gpuName string
-	lines := strings.Split(string(gpuOut), "\n")
+	if err1 != nil || err2 != nil {
+		return 0
+	}
+
+	// Calculate bandwidth: (memory_clock * 2 * bus_width) / 8 / 1000 = GB/s
+	bandwidthGBs := (memClock * 2 * busWidth) / 8 / 1000
+	return bandwidthGBs
+}
+
+func getGPUBandwidthAMD() float64 {
+	cmd := exec.Command("rocm-smi", "--showmeminfo", "vram")
+	out, err := cmd.Output()
+	if err != nil {
+		return 0
+	}
+
+	// Parse memory clock and bus width from rocm-smi output
+	lines := strings.Split(string(out), "\n")
+	var memClock, busWidth float64
+	
 	for _, line := range lines {
-		if strings.Contains(strings.ToLower(line), "vga") || 
-		   strings.Contains(strings.ToLower(line), "nvidia") || 
-		   strings.Contains(strings.ToLower(line), "amd") {
-			gpuName = strings.TrimSpace(strings.Split(line, ":")[1])
-			break
+		if strings.Contains(line, "Memory Clock Level") {
+			fields := strings.Fields(line)
+			if len(fields) > 3 {
+				memClock, _ = strconv.ParseFloat(fields[3], 64)
+			}
 		}
-	}
-	
-	// Try nvidia-smi for VRAM if available
-	vramCmd := exec.Command("nvidia-smi", "--query-gpu=memory.total", "--format=csv,noheader,nounits")
-	vramOut, err := vramCmd.Output()
-	if err == nil {
-		vramMB, err := strconv.ParseFloat(strings.TrimSpace(string(vramOut)), 64)
-		if err == nil {
-			gb := math.Ceil(vramMB / 1024)
-			return gpuName, fmt.Sprintf("%.0f GB", gb)
-		}
-	}
-	
-	// If nvidia-smi fails, try checking /sys/class/drm for AMD cards
-	files, err := ioutil.ReadDir("/sys/class/drm")
-	if err == nil {
-		for _, file := range files {
-			if strings.HasPrefix(file.Name(), "card") {
-				vramPath := fmt.Sprintf("/sys/class/drm/%s/device/mem_info_vram_total", file.Name())
-				vramBytes, err := ioutil.ReadFile(vramPath)
-				if err == nil {
-					vramKB, err := strconv.ParseFloat(strings.TrimSpace(string(vramBytes)), 64)
-					if err == nil {
-						gb := math.Ceil(vramKB / (1024 * 1024))
-						return gpuName, fmt.Sprintf("%.0f GB", gb)
-					}
-				}
+		if strings.Contains(line, "Memory Bus Width") {
+			fields := strings.Fields(line)
+			if len(fields) > 3 {
+				busWidth, _ = strconv.ParseFloat(fields[3], 64)
 			}
 		}
 	}
-	
-	return gpuName, "Unknown"
+
+	if memClock == 0 || busWidth == 0 {
+		return 0
+	}
+
+	// Calculate bandwidth similar to NVIDIA
+	return (memClock * 2 * busWidth) / 8 / 1000
+}
+
+func getGPUBandwidthIntel() float64 {
+	cmd := exec.Command("intel_gpu_top", "-s")
+	out, err := cmd.Output()
+	if err != nil {
+		return 0
+	}
+
+	lines := strings.Split(string(out), "\n")
+	for _, line := range lines {
+		if strings.Contains(line, "Memory Frequency:") {
+			fields := strings.Fields(line)
+			if len(fields) > 2 {
+				memClock, err := strconv.ParseFloat(fields[2], 64)
+				if err != nil {
+					return 0
+				}
+				// Intel GPUs typically have 128-bit memory bus
+				const busWidth = 128.0
+				return (memClock * 2 * busWidth) / 8 / 1000
+			}
+		}
+	}
+	return 0
 }
 
 // Rename existing Windows functions
@@ -242,69 +272,98 @@ func getRAMInfoWindows() string {
 	return "Unknown"
 }
 
-func getGPUInfoWindows() (string, string) {
-	// Create a temporary file for dxdiag output
-	tmpFile, err := ioutil.TempFile("", "dxdiag-*.txt")
+func getGPUInfoWindows() (string, string, float64) {
+	out, err := execWMIC("path", "win32_VideoController", "get", "Name,AdapterRAM", "/format:list")
 	if err != nil {
-		log.Printf("Error creating temp file: %v", err)
-		return "Unknown", "Unknown"
-	}
-	defer os.Remove(tmpFile.Name())
-	tmpFile.Close()
-
-	// Run dxdiag and save output to the temp file
-	cmd := exec.Command("dxdiag", "/t", tmpFile.Name())
-	if err := cmd.Run(); err != nil {
-		log.Printf("Error running dxdiag: %v", err)
-		return "Unknown", "Unknown"
+		return "Unknown", "Unknown", 0
 	}
 
-	// Read the dxdiag output file
-	content, err := ioutil.ReadFile(tmpFile.Name())
-	if err != nil {
-		log.Printf("Error reading dxdiag output: %v", err)
-		return "Unknown", "Unknown"
-	}
+	var gpu, vram string
+	var bandwidth float64
 
-	lines := strings.Split(string(content), "\n")
-	var gpuName, vram string
-	inDisplaySection := false
-
+	lines := strings.Split(out, "\n")
 	for _, line := range lines {
-		line = strings.TrimSpace(line)
-		
-		if strings.HasPrefix(line, "Card name:") {
-			inDisplaySection = true
-			gpuName = strings.TrimSpace(strings.TrimPrefix(line, "Card name:"))
-		}
-		
-		if inDisplaySection && strings.HasPrefix(line, "Dedicated Memory:") {
-			vramStr := strings.TrimSpace(strings.TrimPrefix(line, "Dedicated Memory:"))
-			// Extract the number before " MB"
-			re := regexp.MustCompile(`(\d+)\s*MB`)
-			if matches := re.FindStringSubmatch(vramStr); len(matches) > 1 {
-				mbValue := matches[1]
-				var mb float64
-				fmt.Sscanf(mbValue, "%f", &mb)
-				gb := math.Ceil(mb / 1024)
-				vram = fmt.Sprintf("%.0f GB", gb)
-				break
+		if strings.HasPrefix(line, "Name=") {
+			gpu = strings.TrimSpace(strings.TrimPrefix(line, "Name="))
+			// Detect GPU vendor and use appropriate bandwidth detection
+			switch {
+			case strings.Contains(strings.ToLower(gpu), "nvidia"):
+				bandwidth = getGPUBandwidthNvidia()
+			case strings.Contains(strings.ToLower(gpu), "amd") || strings.Contains(strings.ToLower(gpu), "radeon"):
+				bandwidth = getGPUBandwidthAMD()
+			case strings.Contains(strings.ToLower(gpu), "intel"):
+				bandwidth = getGPUBandwidthIntel()
 			}
+		} else if strings.HasPrefix(line, "AdapterRAM=") {
+			val := strings.TrimSpace(strings.TrimPrefix(line, "AdapterRAM="))
+			bytes, _ := strconv.ParseFloat(val, 64)
+			vram = fmt.Sprintf("%.1f GB", bytes/(1024*1024*1024))
 		}
 	}
 
-	if gpuName == "" {
-		gpuName = "Unknown"
+	if gpu == "" {
+		gpu = "Unknown"
 	}
 	if vram == "" {
 		vram = "Unknown"
 	}
 
-	return gpuName, vram
+	return gpu, vram, bandwidth
+}
+
+// Update getGPUInfoLinux to include bandwidth detection
+func getGPUInfoLinux() (string, string, float64) {
+	// Try lspci first for GPU model
+	gpuCmd := exec.Command("lspci", "-v")
+	gpuOut, err := gpuCmd.Output()
+	if err != nil {
+		return "Unknown", "Unknown", 0
+	}
+
+	var gpu, vram string
+	var bandwidth float64
+
+	lines := strings.Split(string(gpuOut), "\n")
+	for _, line := range lines {
+		if strings.Contains(line, "VGA") || strings.Contains(line, "3D") {
+			gpu = strings.TrimSpace(strings.Split(line, ":")[2])
+			// Detect GPU vendor and use appropriate bandwidth detection
+			switch {
+			case strings.Contains(strings.ToLower(gpu), "nvidia"):
+				bandwidth = getGPUBandwidthNvidia()
+			case strings.Contains(strings.ToLower(gpu), "amd") || strings.Contains(strings.ToLower(gpu), "radeon"):
+				bandwidth = getGPUBandwidthAMD()
+			case strings.Contains(strings.ToLower(gpu), "intel"):
+				bandwidth = getGPUBandwidthIntel()
+			}
+			break
+		}
+	}
+
+	// Try to get VRAM info
+	if strings.Contains(strings.ToLower(gpu), "nvidia") {
+		cmd := exec.Command("nvidia-smi", "--query-gpu=memory.total", "--format=csv,noheader,nounits")
+		out, err := cmd.Output()
+		if err == nil {
+			memMB, err := strconv.ParseFloat(strings.TrimSpace(string(out)), 64)
+			if err == nil {
+				vram = fmt.Sprintf("%.1f GB", memMB/1024)
+			}
+		}
+	}
+
+	if gpu == "" {
+		gpu = "Unknown"
+	}
+	if vram == "" {
+		vram = "Unknown"
+	}
+
+	return gpu, vram, bandwidth
 }
 
 // Add this function to handle OS-specific GPU info retrieval
-func getGPUInfo() (string, string) {
+func getGPUInfo() (string, string, float64) {
 	if runtime.GOOS == "windows" {
 		return getGPUInfoWindows()
 	}
@@ -331,7 +390,7 @@ func main() {
 	storageInfo := getStorageSpace()
 	cpu := getCPUInfo()
 	ram := getRAMInfo()
-	gpu, vram := getGPUInfo()
+	gpu, vram, gpuBandwidth := getGPUInfo()
 
 	sysInfo := SystemInfo{
 		SessionID: sessionID,
@@ -340,11 +399,12 @@ func main() {
 		RAM:       ram,
 		GPU:       gpu,
 		VRAM:      vram,
+		GPUBandwidth: gpuBandwidth,
 	}
 
 	fmt.Println("System Information:")
-	fmt.Printf("Session ID: %s\nStorage: %s\nCPU: %s\nRAM: %s\nGPU: %s\nVRAM: %s\n",
-		sysInfo.SessionID, sysInfo.Storage, sysInfo.CPU, sysInfo.RAM, sysInfo.GPU, sysInfo.VRAM)
+	fmt.Printf("Session ID: %s\nStorage: %s\nCPU: %s\nRAM: %s\nGPU: %s\nVRAM: %s\nGPU Bandwidth: %.2f GB/s\n",
+		sysInfo.SessionID, sysInfo.Storage, sysInfo.CPU, sysInfo.RAM, sysInfo.GPU, sysInfo.VRAM, sysInfo.GPUBandwidth)
 
 	payload, err := json.Marshal(sysInfo)
 	if err != nil {

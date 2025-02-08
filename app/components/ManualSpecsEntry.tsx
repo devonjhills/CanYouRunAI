@@ -1,7 +1,13 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Cpu, MemoryStick, MonitorCog, HardDrive } from "lucide-react";
+import {
+  Cpu,
+  MemoryStick,
+  MonitorCog,
+  HardDrive,
+  MonitorUp,
+} from "lucide-react";
 import type { SystemInfo } from "./SystemChecker";
 import {
   Dialog,
@@ -36,6 +42,7 @@ export function ManualSpecsEntry({
     GPU: initialValues?.GPU || "",
     VRAM: parseInitialValue(initialValues?.VRAM),
     Storage: parseInitialValue(initialValues?.Storage),
+    GPUBandwidth: initialValues?.GPUBandwidth?.toString() || "",
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -52,6 +59,9 @@ export function ManualSpecsEntry({
       GPU: formData.GPU.trim() || "Unknown",
       VRAM: formatSize(formData.VRAM),
       Storage: formatSize(formData.Storage),
+      GPUBandwidth: formData.GPUBandwidth
+        ? parseFloat(formData.GPUBandwidth)
+        : undefined,
     };
 
     onSubmit(updatedInfo);
@@ -125,7 +135,7 @@ export function ManualSpecsEntry({
                 placeholder: "e.g., 32",
               },
               {
-                icon: <HardDrive className="w-4 h-4 text-primary" />,
+                icon: <MemoryStick className="w-4 h-4 text-primary" />,
                 label: "VRAM",
                 key: "VRAM",
                 placeholder: "e.g., 10",
@@ -135,6 +145,12 @@ export function ManualSpecsEntry({
                 label: "Storage",
                 key: "Storage",
                 placeholder: "e.g., 500",
+              },
+              {
+                icon: <MonitorUp className="w-4 h-4 text-primary" />,
+                label: "GPU Bandwidth",
+                key: "GPUBandwidth",
+                placeholder: "e.g., 300",
               },
             ].map((field) => (
               <div key={field.key} className="space-y-2">

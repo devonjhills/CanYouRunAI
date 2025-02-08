@@ -281,7 +281,6 @@ export default function Home() {
     setLoading(true);
     setError(null);
     try {
-      // Build systemSpecs with fallback values if systemInfo is undefined or contains "Unknown"
       const specs: SystemSpecs = {
         totalRam:
           systemInfo?.RAM && systemInfo.RAM !== "Unknown"
@@ -293,7 +292,7 @@ export default function Home() {
             ? parseFloat(systemInfo.VRAM.split(" ")[0])
             : 8,
         numGpus: 1,
-        gpuBandwidth: 300, // Typical mid-range GPU bandwidth in GB/s
+        gpuBandwidth: systemInfo?.GPUBandwidth ?? 300, // Use actual GPU bandwidth if available
         gpuBrand:
           systemInfo?.GPU && systemInfo.GPU !== "Unknown"
             ? systemInfo.GPU

@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Cpu, MemoryStick, MonitorCog, HardDrive, Monitor } from "lucide-react";
+import { Cpu, MemoryStick, MonitorCog, Monitor } from "lucide-react";
 
 export const SystemRequirements = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -122,7 +122,7 @@ export const SystemRequirements = () => {
                   <RequirementItem
                     label="VRAM"
                     value={model.requirements.VRAM}
-                    icon={<HardDrive className="h-4 w-4 text-primary" />}
+                    icon={<MemoryStick className="h-4 w-4 text-primary" />}
                   />
                   <RequirementItem
                     label="Storage"

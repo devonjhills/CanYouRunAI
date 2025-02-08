@@ -4,6 +4,7 @@ export interface LLMRequirements {
   GPU: string;
   VRAM: string;
   Storage: string;
+  GPUBandwidth?: string;
 }
 
 export interface LLMModel {

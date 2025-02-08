@@ -2,7 +2,13 @@
 
 import React from "react";
 import { LLMModel } from "@/app/data/llm-models";
-import { Cpu, MemoryStick, MonitorCog, HardDrive } from "lucide-react";
+import {
+  Cpu,
+  MemoryStick,
+  MonitorCog,
+  HardDrive,
+  MonitorUp,
+} from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ModelSelect } from "@/app/components/ModelSelect";
@@ -13,6 +19,7 @@ export interface SystemInfo {
   GPU: string;
   VRAM: string;
   Storage: string;
+  GPUBandwidth?: number;
 }
 
 interface SystemCheckerProps {
@@ -123,7 +130,7 @@ export function SystemChecker({
                   requirement: comparisonModel?.requirements.GPU || "N/A",
                 },
                 {
-                  icon: <HardDrive className="w-5 h-5 text-primary" />,
+                  icon: <MemoryStick className="w-5 h-5 text-primary" />,
                   label: "VRAM",
                   value: systemInfo?.VRAM || "Unknown",
                   isValid:
@@ -141,6 +148,16 @@ export function SystemChecker({
                   value: systemInfo?.Storage || "Unknown",
                   isValid: systemInfo?.Storage !== "Unknown",
                   requirement: comparisonModel?.requirements.Storage || "N/A",
+                },
+                {
+                  icon: <MonitorUp className="w-5 h-5 text-primary" />,
+                  label: "GPU Bandwidth",
+                  value: systemInfo?.GPUBandwidth
+                    ? `${systemInfo.GPUBandwidth} GB/s`
+                    : "Unknown",
+                  isValid: systemInfo?.GPUBandwidth !== undefined,
+                  requirement:
+                    comparisonModel?.requirements.GPUBandwidth || "N/A",
                 },
               ].map((spec) => (
                 <div key={spec.label} className="flex gap-4">
@@ -205,7 +222,7 @@ export function SystemChecker({
                     value: systemInfo?.GPU,
                   },
                   {
-                    icon: <HardDrive className="w-6 h-6 text-primary" />,
+                    icon: <MemoryStick className="w-6 h-6 text-primary" />,
                     label: "VRAM",
                     value: systemInfo?.VRAM,
                   },
@@ -213,6 +230,13 @@ export function SystemChecker({
                     icon: <HardDrive className="w-6 h-6 text-primary" />,
                     label: "Storage",
                     value: systemInfo?.Storage,
+                  },
+                  {
+                    icon: <MonitorUp className="w-6 h-6 text-primary" />,
+                    label: "GPU Bandwidth",
+                    value: systemInfo?.GPUBandwidth
+                      ? `${systemInfo.GPUBandwidth} GB/s`
+                      : "Not specified",
                   },
                 ].map((item) => (
                   <div

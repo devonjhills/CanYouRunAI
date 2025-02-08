@@ -9,60 +9,60 @@ body {
 
 @layer base {
   :root {
-    /* Modern light theme with pastel neo-brutalist touches */
+    /* Modern light theme with improved contrast ratios */
     --background: 60 9% 98%;
     --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    --primary: 248 90% 66%;
+    --primary: 248 90% 58%; /* Darkened for better contrast */
     --primary-foreground: 0 0% 100%;
-    --secondary: 186 96% 90%;
-    --secondary-foreground: 240 5.9% 10%;
+    --secondary: 186 96% 85%; /* Adjusted for better contrast */
+    --secondary-foreground: 240 10% 3.9%; /* Darkened for better contrast */
     --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 349 89% 90%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
+    --muted-foreground: 240 3.8% 40%; /* Darkened for better contrast */
+    --accent: 349 89% 85%; /* Adjusted for better contrast */
+    --accent-foreground: 240 10% 3.9%;
+    --destructive: 0 84.2% 45%; /* Darkened for better contrast */
     --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 248 90% 66%;
-    --chart-1: 248 90% 66%;
-    --chart-2: 169 84% 75%;
-    --chart-3: 35 90% 75%;
-    --chart-4: 318 81% 83%;
-    --chart-5: 200 95% 76%;
+    --border: 240 5.9% 85%; /* Adjusted for better visibility */
+    --input: 240 5.9% 85%;
+    --ring: 248 90% 58%;
+    --chart-1: 248 90% 58%;
+    --chart-2: 169 84% 65%; /* Adjusted for better contrast */
+    --chart-3: 35 90% 65%; /* Adjusted for better contrast */
+    --chart-4: 318 81% 73%; /* Adjusted for better contrast */
+    --chart-5: 200 95% 66%; /* Adjusted for better contrast */
     --radius: 0.5rem;
   }
 
   .dark {
-    /* Softer dark theme with pastel neo-brutalist touches */
-    --background: 240 10% 10%;
-    --foreground: 0 0% 93%;
-    --card: 240 10% 12%;
-    --card-foreground: 0 0% 93%;
-    --popover: 240 10% 12%;
-    --popover-foreground: 0 0% 93%;
-    --primary: 248 80% 76%;
-    --primary-foreground: 240 10% 10%;
-    --secondary: 186 70% 85%;
-    --secondary-foreground: 240 10% 10%;
+    /* Softer dark theme with improved contrast ratios */
+    --background: 240 10% 8%; /* Darkened for better contrast */
+    --foreground: 0 0% 95%; /* Lightened for better contrast */
+    --card: 240 10% 10%;
+    --card-foreground: 0 0% 95%;
+    --popover: 240 10% 10%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 248 80% 80%; /* Lightened for better contrast */
+    --primary-foreground: 240 10% 8%;
+    --secondary: 186 70% 90%; /* Lightened for better contrast */
+    --secondary-foreground: 240 10% 8%;
     --muted: 240 10% 15%;
-    --muted-foreground: 240 5% 75%;
-    --accent: 349 70% 85%;
-    --accent-foreground: 240 10% 10%;
-    --destructive: 0 62.8% 40.6%;
-    --destructive-foreground: 0 0% 93%;
-    --border: 240 10% 20%;
-    --input: 240 10% 20%;
-    --ring: 248 80% 76%;
-    --chart-1: 248 80% 76%;
-    --chart-2: 169 75% 70%;
-    --chart-3: 35 80% 70%;
-    --chart-4: 318 72% 78%;
-    --chart-5: 200 85% 71%;
+    --muted-foreground: 240 5% 84%; /* Lightened for better contrast */
+    --accent: 349 70% 90%; /* Lightened for better contrast */
+    --accent-foreground: 240 10% 8%;
+    --destructive: 0 62.8% 50%; /* Adjusted for better visibility */
+    --destructive-foreground: 0 0% 95%;
+    --border: 240 10% 25%; /* Lightened for better visibility */
+    --input: 240 10% 25%;
+    --ring: 248 80% 80%;
+    --chart-1: 248 80% 80%;
+    --chart-2: 169 75% 75%; /* Adjusted for better contrast */
+    --chart-3: 35 80% 75%; /* Adjusted for better contrast */
+    --chart-4: 318 72% 83%; /* Adjusted for better contrast */
+    --chart-5: 200 85% 76%; /* Adjusted for better contrast */
   }
 }
 

@@ -1,30 +1,11 @@
 // Define interfaces for types used in the Worker
 interface ModelConfig {
-  _name_or_path: string;
-  architectures?: string[];
-  attention_dropout?: number;
-  bos_token_id?: number;
-  embd_pdrop?: number;
-  eos_token_id?: number;
-  hidden_act?: string;
   hidden_size: number;
-  initializer_range?: number;
-  intermediate_size?: number;
-  layer_norm_eps?: number;
   max_position_embeddings: number;
-  model_type?: string;
   num_attention_heads: number;
   num_hidden_layers: number;
   num_key_value_heads: number;
-  partial_rotary_factor?: number;
-  qk_layernorm?: boolean;
-  resid_pdrop?: number;
-  rope_scaling?: any;
-  rope_theta?: number;
-  tie_word_embeddings?: boolean;
   torch_dtype: string;
-  transformers_version?: string;
-  use_cache?: boolean;
   vocab_size?: number;
 }
 
@@ -90,8 +71,14 @@ function handleCors(request: Request): Response | null {
 
 // Define your quantization levels
 const QUANTIZATION_LEVELS: QuantizationLevel[] = [
-  { name: "q8", bpw: 8 },
-  { name: "q4", bpw: 4 },
+  { name: "fp8", bpw: 8.0 },
+  { name: "q6_k_s", bpw: 6.6 },
+  { name: "q5_k_s", bpw: 5.5 },
+  { name: "q4_k_m", bpw: 4.8 },
+  { name: "IQ4_XS", bpw: 4.3 },
+  { name: "q3_k_m", bpw: 3.9 },
+  { name: "IQ3_XS", bpw: 3.3 },
+  { name: "IQ2_XS", bpw: 2.4 },
 ];
 
 // Entry point: listen for incoming requests
@@ -184,7 +171,6 @@ async function handleRequest(request: Request): Promise<Response> {
 
       return new Response(
         JSON.stringify({
-          modelConfig,
           modelParams,
           modelSummary,
           systemSpecs,
@@ -302,7 +288,6 @@ async function fetchModelSummary(modelId: string): Promise<ModelSummary> {
     ];
 
     let description = "";
-    let source = "";
 
     // Try to find any section that matches our patterns
     let foundSection = false;
@@ -313,7 +298,6 @@ async function fetchModelSummary(modelId: string): Promise<ModelSummary> {
       if (match?.[1]) {
         foundSection = true;
         description = match[1].trim();
-        source = section.name;
         break;
       }
     }
@@ -349,14 +333,29 @@ function calculateMaxTokens(
   return Math.min(maxTokens, config.max_position_embeddings);
 }
 
-function isValidConfig(config: any): config is ModelConfig {
+function isValidConfig(config: unknown): config is ModelConfig {
+  const modelConfig = config as ModelConfig;
   return (
-    config &&
-    typeof config.hidden_size === "number" &&
-    typeof config.max_position_embeddings === "number" &&
-    typeof config.num_attention_heads === "number" &&
-    typeof config.num_hidden_layers === "number" &&
-    typeof config.num_key_value_heads === "number"
+    typeof modelConfig === "object" &&
+    modelConfig !== null &&
+    typeof modelConfig.hidden_size === "number" &&
+    typeof modelConfig.max_position_embeddings === "number" &&
+    typeof modelConfig.num_attention_heads === "number" &&
+    typeof modelConfig.num_hidden_layers === "number" &&
+    typeof modelConfig.num_key_value_heads === "number"
+  );
+}
+
+// Helper functions for token speed calculations
+function estimateBaseTks(bw: number, mem: number) {
+  if (!bw || !mem || mem <= 0) return null;
+  return (bw / mem) * 0.9;
+}
+
+function calculateTks(baseTks: number | null, offloadRatio: number) {
+  if (baseTks === null || isNaN(offloadRatio)) return null;
+  return (
+    baseTks * (0.052 * Math.exp((4.55 * (100 - offloadRatio)) / 100) + 1.06)
   );
 }
 
@@ -372,9 +371,10 @@ function analyzeQuantization(
   const requiredMem = (paramsB * bpw) / 8 / 1e9;
   let ctx = 0;
 
+  // All in VRAM case
   if (requiredMem <= vramGb) {
     ctx = calculateMaxTokens(vramGb - requiredMem, config);
-    const tks = bandwidth / requiredMem;
+    const tks = bandwidth && requiredMem ? bandwidth / requiredMem : null;
     return {
       runType: "All in VRAM",
       memoryRequired: requiredMem,
@@ -384,9 +384,11 @@ function analyzeQuantization(
     };
   }
 
+  // KV cache offload case
   if (requiredMem <= vramGb + 1 && vramGb > 1) {
     ctx = calculateMaxTokens(ramGb + vramGb - requiredMem, config);
-    const tks = (bandwidth / requiredMem) * 0.9;
+    const tks =
+      bandwidth && requiredMem ? (bandwidth / requiredMem) * 0.9 : null;
     return {
       runType: "KV cache offload",
       memoryRequired: requiredMem,
@@ -396,12 +398,12 @@ function analyzeQuantization(
     };
   }
 
+  // Partial offload case
   if (vramGb > 1 && requiredMem <= ramGb + vramGb) {
     ctx = calculateMaxTokens(ramGb + vramGb - requiredMem, config);
     const offloadRatio = ((requiredMem - vramGb) / requiredMem) * 100;
-    const baseTks = (ramBandwidth / requiredMem) * 0.9;
-    const tks =
-      baseTks * (0.052 * Math.exp((4.55 * (100 - offloadRatio)) / 100) + 1.06);
+    const baseTks = estimateBaseTks(ramBandwidth, requiredMem);
+    const tks = calculateTks(baseTks, offloadRatio);
     return {
       runType: "Partial offload",
       memoryRequired: requiredMem,
@@ -411,18 +413,20 @@ function analyzeQuantization(
     };
   }
 
+  // All in System RAM case
   if (requiredMem <= ramGb) {
     ctx = calculateMaxTokens(ramGb - requiredMem, config);
-    const tks = (ramBandwidth / requiredMem) * 0.9;
+    const baseTks = estimateBaseTks(ramBandwidth, requiredMem);
     return {
       runType: "All in System RAM",
       memoryRequired: requiredMem,
       offloadPercentage: 100,
-      tokensPerSecond: tks,
+      tokensPerSecond: baseTks,
       maxContext: ctx,
     };
   }
 
+  // Won't run case
   return {
     runType: "Won't run",
     memoryRequired: requiredMem,
