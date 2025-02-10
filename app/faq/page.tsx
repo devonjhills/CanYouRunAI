@@ -29,21 +29,13 @@ export default function FAQ() {
         </p>
 
         <h3>How does the system check work?</h3>
-        <p>
-          When you click &quot;Can You Run This AI?&quot;, our tool downloads a
-          small executable that scans your system specifications, including:
-        </p>
+        <p>Enter your system specifications manually, and our tool will:</p>
         <ul>
-          <li>CPU model and specifications</li>
-          <li>RAM (system memory) capacity</li>
-          <li>GPU (graphics card) model</li>
-          <li>VRAM (video memory) capacity</li>
-          <li>Available storage space</li>
+          <li>Compare your hardware against our comprehensive database</li>
+          <li>Analyze compatibility with various AI models</li>
+          <li>Provide detailed performance estimates</li>
+          <li>Suggest optimal configurations for your setup</li>
         </ul>
-        <p>
-          This information is then compared against the requirements of your
-          selected AI model to determine compatibility.
-        </p>
 
         <h2>Model Requirements</h2>
 

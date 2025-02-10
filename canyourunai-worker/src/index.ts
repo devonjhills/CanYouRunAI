@@ -10,12 +10,13 @@ interface SystemInfo {
 
 interface Env {
 	SYSTEM_INFO: KVNamespace;
+	GPU_DATABASE: KVNamespace;
 }
 
 const ALLOWED_ORIGINS = ['http://localhost:3000', 'https://www.canyourunai.com'];
 
 export default {
-	async fetch(request: Request, env: Env) {
+	async fetch(request: Request, env: Env): Promise<Response> {
 		if (!env.SYSTEM_INFO) {
 			return new Response(JSON.stringify({ error: 'KV Namespace SYSTEM_INFO is not bound!' }), {
 				status: 500,
@@ -24,6 +25,14 @@ export default {
 		}
 
 		const url = new URL(request.url);
+
+		// Add CORS headers
+		const corsHeaders = {
+			'Access-Control-Allow-Origin': '*',
+			'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+			'Access-Control-Allow-Headers': 'Content-Type',
+			'Content-Type': 'application/json',
+		};
 
 		// Handle CORS preflight requests
 		if (request.method === 'OPTIONS') {
@@ -165,6 +174,68 @@ export default {
 					headers: { 'Content-Type': 'text/html' },
 				},
 			);
+		}
+
+		// Handle GPU search
+		if (url.pathname.endsWith('/gpus/search')) {
+			try {
+				const query = url.searchParams.get('q')?.toLowerCase() || '';
+				const gpuData = await env.GPU_DATABASE.get('gpu-database', 'json');
+				
+				if (!gpuData) {
+					return new Response(JSON.stringify([]), { 
+						headers: corsHeaders 
+					});
+				}
+
+				// Convert object to array, using Code name as key
+				const gpus = Object.entries(gpuData).map(([_, gpu]) => ({
+					key: gpu["Code name"],  // Use Code name as the key
+					...gpu, // Spread all properties from the original data
+					// Ensure these specific fields exist with proper types
+					vram: parseInt(String(gpu["Memory Size (MiB)"]).split(' ')[0]) || 0,
+					bandwidth: parseFloat(String(gpu["Memory Bandwidth (GB/s)"]).split(' ')[0]) || 0,
+					model: gpu.Model || gpu["Code name"], // Use Model field or Code name as fallback
+					architecture: gpu["Code name"] || '',
+					vendor: gpu.Vendor || ''
+				}));
+
+				// Search against Model and Vendor fields
+				const filtered = query 
+					? gpus.filter(gpu => {
+						const modelMatch = (gpu.Model || '').toLowerCase().includes(query);
+						const vendorMatch = (gpu.Vendor || '').toLowerCase().includes(query);
+						return modelMatch || vendorMatch;
+					})
+					: [];
+
+				return new Response(JSON.stringify(filtered), {
+					headers: corsHeaders
+				});
+			} catch (error) {
+				console.error('Error searching GPU data:', error);
+				return new Response(JSON.stringify({ error: 'Failed to search GPU data' }), { 
+					status: 500,
+					headers: corsHeaders 
+				});
+			}
+		}
+
+		if (request.url.endsWith('/gpus')) {
+			try {
+				const gpuData = await env.GPU_DATABASE.get('gpu-database');
+				if (!gpuData) {
+					return new Response('GPU data not found', { status: 404 });
+				}
+				return new Response(gpuData, {
+					headers: {
+						'Content-Type': 'application/json',
+						'Access-Control-Allow-Origin': '*',
+					},
+				});
+			} catch (error) {
+				return new Response('Error fetching GPU data', { status: 500 });
+			}
 		}
 
 		return new Response('Not Found', { status: 404 });

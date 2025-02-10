@@ -1,9 +1,8 @@
 name = "canyourunai-worker"
-type = "typescript"
 compatibility_date = "2025-02-05"
-
-main = "canyourunai-worker/src/index.ts"  # Specify the entry point for your worker
+main = "canyourunai-worker/src/index.ts"
 
 kv_namespaces = [
-  { binding = "SYSTEM_INFO", id = "097faddb5ea74a6cb856d604fda8dc2e", preview_id = "b145afab1c7545688759ba64a5111e36" }
+  { binding = "SYSTEM_INFO", id = "097faddb5ea74a6cb856d604fda8dc2e", preview_id = "b145afab1c7545688759ba64a5111e36" },
+  { binding = "GPU_DATABASE", id = "2d9ac1b404334f2ab1a824482bf83b25" }
 ]

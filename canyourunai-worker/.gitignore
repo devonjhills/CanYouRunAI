@@ -170,3 +170,7 @@ dist
 
 .dev.vars
 .wrangler/
+
+# GPU data
+
+/scripts/gpu_scraper/gpu-data.json

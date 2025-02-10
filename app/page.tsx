@@ -11,7 +11,12 @@ import Cookies from "js-cookie";
 import type { SystemSpecs, AdvancedAnalysis } from "./data/llm-models";
 import { AdvancedAnalysisSection } from "./components/AdvancedAnalysis";
 import { ModelSelect } from "@/app/components/ModelSelect";
-import { ManualSpecsEntry } from "@/app/components/ManualSpecsEntry";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { CPUSelector } from "@/app/components/CPUSelector";
+import { GPUSelector } from "@/app/components/GPUSelector";
+import { CPUSpecs } from "@/app/data/hardware-db";
+import { GPUSpecs } from "@/app/data/gpu-db";
 
 const isProd = process.env.NODE_ENV === "production";
 
@@ -25,9 +30,6 @@ export default function Home() {
     undefined,
   );
   const [selectedModel, setSelectedModel] = useState<LLMModel | undefined>();
-  const [status, setStatus] = useState<
-    "idle" | "downloading" | "waiting" | "gathering" | "finished"
-  >("idle");
   const [comparisonModel, setComparisonModel] = useState<LLMModel | undefined>(
     undefined,
   );
@@ -37,6 +39,14 @@ export default function Home() {
   // This state now holds the modelId entered in the advanced tab.
   const [modelId, setModelId] = useState("");
   const [lastChecked, setLastChecked] = useState<string | null>(null);
+  const [formData, setFormData] = useState<SystemInfo>({
+    CPU: "",
+    RAM: "",
+    GPU: "",
+    VRAM: "",
+    Storage: "",
+    GPUBandwidth: undefined,
+  });
 
   useEffect(() => {
     // Initial check on page load
@@ -51,199 +61,10 @@ export default function Home() {
     }
   }, []);
 
-  useEffect(() => {
-    const checkSystemInfo = async () => {
-      try {
-        const response = await fetch(
-          "https://canyourunai-worker.digitalveilmedia.workers.dev/api/system-check",
-          {
-            credentials: "include",
-            mode: "cors",
-          },
-        );
-        const data = (await response.json()) as {
-          success: boolean;
-          systemInfo?: SystemInfo;
-          status?: string;
-        };
-
-        console.log("API response:", data);
-
-        if (data.success && data.systemInfo) {
-          if (
-            data.systemInfo.CPU &&
-            data.systemInfo.RAM &&
-            data.systemInfo.GPU &&
-            data.systemInfo.VRAM &&
-            data.systemInfo.Storage
-          ) {
-            setStatus("gathering");
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-
-            // Store in localStorage or cookie
-            storeSystemInfo(data.systemInfo);
-            setSystemInfo(data.systemInfo);
-            setStatus("finished");
-
-            const element = document.getElementById("system-requirements");
-            if (element) {
-              element.scrollIntoView({ behavior: "smooth", block: "start" });
-            }
-          }
-        }
-      } catch (error) {
-        console.error("Error checking system info:", error);
-      }
-    };
-
-    // Poll only when waiting for exe results
-    if (status === "waiting" || status === "gathering") {
-      const interval = setInterval(checkSystemInfo, 2000);
-      return () => clearInterval(interval);
-    }
-  }, [status]);
-
-  useEffect(() => {
-    if (status === "finished") {
-      // Wait 1 second before closing the overlay
-      const timer = setTimeout(() => {
-        setStatus("idle");
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [status]);
-
   const handleModelSelect = (modelId: string) => {
     const model = llmModels.find((m) => m.id === modelId);
     setSelectedModel(model);
     setComparisonModel(model);
-  };
-
-  const handleSystemCheck = (e: React.MouseEvent) => {
-    e.preventDefault();
-
-    if (systemInfo) {
-      if (
-        !confirm(
-          "Would you like to scan your system again? This is recommended if your hardware has changed recently.",
-        )
-      ) {
-        return;
-      }
-    }
-
-    setStatus("downloading");
-
-    // Detect OS
-    const platform = window.navigator.platform.toLowerCase();
-    const isWindows = platform.includes("win");
-    const isLinux = platform.includes("linux");
-
-    const exeUrl = isLinux ? "/CanYouRunAI" : "/CanYouRunAI.exe";
-
-    if (!isWindows && !isLinux) {
-      alert(
-        "Sorry, the system checker is only available for Windows and Linux at this time.",
-      );
-      setStatus("idle");
-      return;
-    }
-
-    fetch(exeUrl)
-      .then((response) => response.blob())
-      .then((blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const downloadLink = document.createElement("a");
-        downloadLink.href = url;
-        downloadLink.download = isLinux ? "CanYouRunAI" : "CanYouRunAI.exe";
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-        document.body.removeChild(downloadLink);
-        window.URL.revokeObjectURL(url);
-
-        setStatus("waiting");
-      });
-  };
-
-  const StatusOverlay = () => {
-    if (status === "idle") return null;
-
-    // Detect OS for instructions
-    const isLinux = window.navigator.platform.toLowerCase().includes("linux");
-
-    return (
-      <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
-        <Card className="w-full max-w-md p-6">
-          <div className="space-y-6">
-            <div className="flex justify-between">
-              {["downloading", "waiting", "gathering", "finished"].map(
-                (step, i) => (
-                  <div key={step} className="flex flex-col items-center">
-                    <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center border-2 
-                    ${
-                      status === step
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-muted text-muted-foreground"
-                    }`}
-                    >
-                      {i + 1}
-                    </div>
-                    <span className="text-muted-foreground capitalize">
-                      {step}
-                    </span>
-                  </div>
-                ),
-              )}
-            </div>
-
-            <div className="text-center">
-              <h2 className="text-xl font-bold mb-2">
-                {status === "downloading" && "Starting Download..."}
-                {status === "waiting" && "Waiting for System Check"}
-                {status === "gathering" && "Gathering Data"}
-                {status === "finished" && "Complete!"}
-              </h2>
-              <p className="text-muted-foreground">
-                {status === "downloading" &&
-                  "Your download should begin automatically..."}
-                {status === "waiting" && (
-                  <>
-                    {isLinux ? (
-                      <>
-                        Please open a terminal to downloaded file location and
-                        run:
-                        <br />
-                        <code className="block bg-muted p-2 mt-2 rounded text-sm">
-                          chmod +x CanYouRunAI
-                          <br />
-                          ./CanYouRunAI
-                        </code>
-                      </>
-                    ) : (
-                      "Please run the downloaded CanYouRunAI.exe file"
-                    )}
-                    <br />
-                    <span className="text-xs mt-2 block">
-                      This tool only collects system specifications, no personal
-                      information.
-                    </span>
-                  </>
-                )}
-                {status === "gathering" && "Gathering system information..."}
-                {status === "finished" && "Done!"}
-              </p>
-            </div>
-
-            {(status === "gathering" || status === "downloading") && (
-              <div className="flex justify-center mt-8">
-                <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-              </div>
-            )}
-          </div>
-        </Card>
-      </div>
-    );
   };
 
   // Store system info
@@ -328,6 +149,26 @@ export default function Home() {
     }
   };
 
+  const handleSubmit = () => {
+    storeSystemInfo(formData);
+    setSystemInfo(formData);
+    const timestamp = new Date().toISOString();
+    setLastChecked(timestamp);
+    if (isProd) {
+      Cookies.set("systemInfoTimestamp", timestamp, {
+        expires: 1,
+        secure: true,
+        sameSite: "none",
+      });
+    } else {
+      localStorage.setItem("systemInfoTimestamp", timestamp);
+    }
+    const element = document.getElementById("system-requirements");
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
     <div className="min-h-screen">
       <section className="py-12 px-6 bg-gradient-to-b from-background to-muted/30">
@@ -341,10 +182,6 @@ export default function Home() {
                   Can I Run this LLM{" "}
                   <span className="text-primary">locally?</span>
                 </h1>
-                <p className="text-lg md:text-xl text-muted-foreground">
-                  Analyze your computer in seconds.{" "}
-                  <span className="font-bold text-foreground">100% Free.</span>
-                </p>
               </div>
 
               {/* Model Selection and Actions */}
@@ -358,61 +195,71 @@ export default function Home() {
                   placeholder="Choose a model from our list"
                 />
 
-                <div className="grid grid-cols-1 gap-4">
-                  <div className="flex items-center gap-4">
-                    <Button
-                      className="flex-1 neo-button py-6 bg-primary hover:bg-primary/90 transition-colors shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed text-lg"
-                      onClick={handleSystemCheck}
-                      disabled={!selectedModel}
-                    >
-                      Download System Checker
-                    </Button>
+                <Card className="p-6 space-y-6">
+                  <h2 className="text-xl font-semibold">Enter Your Hardware Details</h2>
+                  
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <CPUSelector
+                      onSelect={(cpu: CPUSpecs) => {
+                        setFormData(prev => ({
+                          ...prev,
+                          CPU: cpu.model,
+                        }));
+                      }}
+                      selectedModel={formData.CPU}
+                    />
 
-                    <div className="flex flex-col items-center gap-1">
-                      <div className="w-[1px] h-4 bg-border" />
-                      <span className="text-xs font-medium text-muted-foreground">
-                        OR
-                      </span>
-                      <div className="w-[1px] h-4 bg-border" />
+                    <GPUSelector
+                      onSelect={(gpu: GPUSpecs) => {
+                        setFormData(prev => ({
+                          ...prev,
+                          GPU: gpu.model,
+                          VRAM: `${gpu.vram} GB`,
+                          GPUBandwidth: gpu.bandwidth,
+                        }));
+                      }}
+                      selectedModel={formData.GPU}
+                    />
+
+                    <div className="space-y-2">
+                      <Label>RAM (GB)</Label>
+                      <Input
+                        type="number"
+                        value={formData.RAM.split(" ")[0] || ""}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            RAM: `${e.target.value} GB`,
+                          }))
+                        }
+                        placeholder="Enter RAM amount"
+                      />
                     </div>
 
-                    <ManualSpecsEntry
-                      onSubmit={(info) => {
-                        storeSystemInfo(info);
-                        setSystemInfo(info);
-                        const timestamp = new Date().toISOString();
-                        setLastChecked(timestamp);
-                        if (isProd) {
-                          Cookies.set("systemInfoTimestamp", timestamp, {
-                            expires: 1,
-                            secure: true,
-                            sameSite: "none",
-                          });
-                        } else {
-                          localStorage.setItem(
-                            "systemInfoTimestamp",
-                            timestamp,
-                          );
+                    <div className="space-y-2">
+                      <Label>Storage (GB)</Label>
+                      <Input
+                        type="number"
+                        value={formData.Storage.split(" ")[0] || ""}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            Storage: `${e.target.value} GB`,
+                          }))
                         }
-                        const element = document.getElementById(
-                          "system-requirements",
-                        );
-                        if (element) {
-                          element.scrollIntoView({ behavior: "smooth" });
-                        }
-                      }}
-                      initialValues={systemInfo}
-                      trigger={
-                        <Button
-                          variant="outline"
-                          className="flex-1 neo-button py-6 hover:bg-accent transition-colors shadow-lg hover:shadow-xl text-lg"
-                        >
-                          Enter Specs Manually
-                        </Button>
-                      }
-                    />
+                        placeholder="Enter storage amount"
+                      />
+                    </div>
                   </div>
-                </div>
+
+                  <Button 
+                    className="w-full neo-button py-6 bg-primary hover:bg-primary/90 transition-colors shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+                    onClick={handleSubmit}
+                    disabled={!selectedModel || !formData.CPU || !formData.GPU || !formData.RAM || !formData.Storage}
+                  >
+                    Check Compatibility
+                  </Button>
+                </Card>
               </div>
             </div>
           </Card>
@@ -453,8 +300,6 @@ export default function Home() {
           </section>
         </div>
       </section>
-
-      <StatusOverlay />
     </div>
   );
 }
