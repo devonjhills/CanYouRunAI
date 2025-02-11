@@ -31,7 +31,6 @@ export function GPUSelector({ onSelect, selectedModel }: GPUSelectorProps) {
     if (workerUrl) {
       setIsLoading(true);
       fetch(`${workerUrl}/gpus`, {
-        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
