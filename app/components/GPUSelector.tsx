@@ -18,54 +18,70 @@ export function GPUSelector({ onSelect, selectedModel }: GPUSelectorProps) {
   const [error, setError] = useState<string | null>(null);
   const [selectedGPU, setSelectedGPU] = useState<GPUSpecs | null>(null);
 
-  useEffect(() => {
-    if (selectedModel && !selectedGPU) {
-      fetch(`${process.env.NEXT_PUBLIC_WORKER_URL}/gpus/search?q=${encodeURIComponent(selectedModel)}`)
-        .then(async res => {
-          if (!res.ok) throw new Error('Failed to load GPU data');
-          const data = await res.json();
-          const gpu = Array.isArray(data) ? data.find(g => g.key === selectedModel) : null;
-          if (gpu) {
-            setSelectedGPU(gpu);
-          }
-        })
-        .catch(err => {
-          console.error('Error loading selected GPU:', err);
-        });
-    }
-  }, [selectedModel, selectedGPU]);
+  const workerUrl = process.env.NEXT_PUBLIC_WORKER_URL;
+  if (!workerUrl) {
+    console.error('Worker URL is not configured');
+  }
 
   useEffect(() => {
-    if (search.trim()) {
+    if (selectedModel && !selectedGPU && workerUrl) {
+      fetch(`${workerUrl}/gpus/search?q=${encodeURIComponent(selectedModel)}`, {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(async res => {
+        if (!res.ok) throw new Error('Failed to load GPU data');
+        const data = await res.json();
+        const gpu = Array.isArray(data) ? data.find(g => g.key === selectedModel) : null;
+        if (gpu) {
+          setSelectedGPU(gpu);
+        }
+      })
+      .catch(err => {
+        console.error('Error loading selected GPU:', err);
+        setError(err.message || 'Failed to load GPU data');
+      });
+    }
+  }, [selectedModel, selectedGPU, workerUrl]);
+
+  useEffect(() => {
+    if (search.trim() && workerUrl) {
       setIsLoading(true);
       setError(null);
       
       const debounceTimer = setTimeout(() => {
-        fetch(`${process.env.NEXT_PUBLIC_WORKER_URL}/gpus/search?q=${encodeURIComponent(search)}`)
-          .then(async res => {
-            if (!res.ok) throw new Error('Failed to load GPU data');
-            const data = await res.json();
-            const uniqueGPUs = Array.isArray(data) 
-              ? data.filter((gpu, index, self) => 
-                  index === self.findIndex(g => g.key === gpu.key)
-                )
-              : [];
-            setGpus(uniqueGPUs);
-            setIsLoading(false);
-          })
-          .catch(err => {
-            console.error('Error loading GPUs:', err);
-            setError(err.message || 'Failed to load GPU data');
-            setGpus([]);
-            setIsLoading(false);
-          });
+        fetch(`${workerUrl}/gpus/search?q=${encodeURIComponent(search)}`, {
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+        .then(async res => {
+          if (!res.ok) throw new Error('Failed to load GPU data');
+          const data = await res.json();
+          const uniqueGPUs = Array.isArray(data) 
+            ? data.filter((gpu, index, self) => 
+                index === self.findIndex(g => g.key === gpu.key)
+              )
+            : [];
+          setGpus(uniqueGPUs);
+          setIsLoading(false);
+        })
+        .catch(err => {
+          console.error('Error loading GPUs:', err);
+          setError(err.message || 'Failed to load GPU data');
+          setGpus([]);
+          setIsLoading(false);
+        });
       }, 300);
 
       return () => clearTimeout(debounceTimer);
     } else {
       setGpus([]);
     }
-  }, [search]);
+  }, [search, workerUrl]);
 
   return (
     <Card className="w-full shadow-sm hover:shadow-md transition-all">

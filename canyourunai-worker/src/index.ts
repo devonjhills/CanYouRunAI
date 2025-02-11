@@ -13,7 +13,11 @@ interface Env {
 	GPU_DATABASE: KVNamespace;
 }
 
-const ALLOWED_ORIGINS = ['http://localhost:3000', 'https://www.canyourunai.com'];
+const ALLOWED_ORIGINS = [
+	'http://localhost:3000',
+	'https://www.canyourunai.com',
+	'https://canyourunai.com'  // Add non-www version
+];
 
 export default {
 	async fetch(request: Request, env: Env): Promise<Response> {
@@ -179,6 +183,17 @@ export default {
 		// Handle GPU search
 		if (url.pathname.endsWith('/gpus/search')) {
 			try {
+				const origin = request.headers.get('Origin') || '';
+				const isAllowedOrigin = ALLOWED_ORIGINS.includes(origin);
+				
+				const corsHeaders = {
+					'Access-Control-Allow-Origin': isAllowedOrigin ? origin : ALLOWED_ORIGINS[0],
+					'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+					'Access-Control-Allow-Headers': 'Content-Type',
+					'Access-Control-Allow-Credentials': 'true',
+					'Content-Type': 'application/json'
+				};
+
 				const query = url.searchParams.get('q')?.toLowerCase() || '';
 				const gpuData = await env.GPU_DATABASE.get('gpu-database', 'json');
 				
