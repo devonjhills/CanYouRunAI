@@ -1,10 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { Check } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from "react";
+import { Check } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Command, CommandInput, CommandList, CommandItem, CommandEmpty } from "@/components/ui/command";
+import {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandItem,
+  CommandEmpty,
+} from "@/components/ui/command";
 import { Badge } from "@/components/ui/badge";
-import { GPUSpecs } from '@/app/data/gpu-db';
+import { GPUSpecs } from "@/app/data/gpu-db";
 
 interface GPUSelectorProps {
   onSelect: (gpu: GPUSpecs) => void;
@@ -13,82 +19,68 @@ interface GPUSelectorProps {
 
 export function GPUSelector({ onSelect, selectedModel }: GPUSelectorProps) {
   const [search, setSearch] = useState("");
-  const [gpus, setGpus] = useState<GPUSpecs[]>([]);
+  const [allGpus, setAllGpus] = useState<GPUSpecs[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedGPU, setSelectedGPU] = useState<GPUSpecs | null>(null);
 
   const workerUrl = process.env.NEXT_PUBLIC_WORKER_URL;
-  if (!workerUrl) {
-    console.error('Worker URL is not configured');
-  }
 
+  // Fetch all GPUs once on component mount
   useEffect(() => {
-    if (selectedModel && !selectedGPU && workerUrl) {
-      fetch(`${workerUrl}/gpus/search?q=${encodeURIComponent(selectedModel)}`, {
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-      .then(async res => {
-        if (!res.ok) throw new Error('Failed to load GPU data');
-        const data = await res.json();
-        const gpu = Array.isArray(data) ? data.find(g => g.key === selectedModel) : null;
-        if (gpu) {
-          setSelectedGPU(gpu);
-        }
-      })
-      .catch(err => {
-        console.error('Error loading selected GPU:', err);
-        setError(err.message || 'Failed to load GPU data');
-      });
-    }
-  }, [selectedModel, selectedGPU, workerUrl]);
-
-  useEffect(() => {
-    if (search.trim() && workerUrl) {
+    if (workerUrl) {
       setIsLoading(true);
-      setError(null);
-      
-      const debounceTimer = setTimeout(() => {
-        fetch(`${workerUrl}/gpus/search?q=${encodeURIComponent(search)}`, {
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json'
+      fetch(`${workerUrl}/gpus`, {
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+        .then(async (res) => {
+          if (!res.ok) {
+            throw new Error(`HTTP error! status: ${res.status}`);
           }
-        })
-        .then(async res => {
-          if (!res.ok) throw new Error('Failed to load GPU data');
           const data = await res.json();
-          const uniqueGPUs = Array.isArray(data) 
-            ? data.filter((gpu, index, self) => 
-                index === self.findIndex(g => g.key === gpu.key)
-              )
-            : [];
-          setGpus(uniqueGPUs);
+          setAllGpus(data as GPUSpecs[]);
           setIsLoading(false);
         })
-        .catch(err => {
-          console.error('Error loading GPUs:', err);
-          setError(err.message || 'Failed to load GPU data');
-          setGpus([]);
+        .catch((err) => {
+          console.error("Error loading GPUs:", err);
+          setError("Failed to load GPU data. Please try again later.");
           setIsLoading(false);
         });
-      }, 300);
-
-      return () => clearTimeout(debounceTimer);
-    } else {
-      setGpus([]);
     }
-  }, [search, workerUrl]);
+  }, [workerUrl]);
+
+  // Local search filtering
+  const filteredGpus = useMemo(() => {
+    if (!search.trim()) return [];
+    const searchLower = search.toLowerCase();
+    return allGpus
+      .filter(
+        (gpu) =>
+          gpu.Model?.toLowerCase().includes(searchLower) ||
+          gpu.Vendor?.toLowerCase().includes(searchLower),
+      )
+      .slice(0, 50); // Limit results for better performance
+  }, [search, allGpus]);
+
+  // Set initial selected GPU
+  useEffect(() => {
+    if (selectedModel && !selectedGPU && allGpus.length > 0) {
+      const gpu = allGpus.find((g) => g.key === selectedModel);
+      if (gpu) {
+        setSelectedGPU(gpu);
+      }
+    }
+  }, [selectedModel, selectedGPU, allGpus]);
 
   return (
     <Card className="w-full shadow-sm hover:shadow-md transition-all">
       <div className="p-4">
         <Label>GPU Model</Label>
         <Command shouldFilter={false} className="rounded-lg border shadow-sm">
-          <CommandInput 
+          <CommandInput
             placeholder="Search GPUs..."
             value={search}
             onValueChange={setSearch}
@@ -102,12 +94,12 @@ export function GPUSelector({ onSelect, selectedModel }: GPUSelectorProps) {
               <CommandEmpty className="py-6 text-center text-sm text-red-500">
                 {error}
               </CommandEmpty>
-            ) : gpus.length === 0 && search.length > 0 ? (
+            ) : filteredGpus.length === 0 && search.length > 0 ? (
               <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
                 No results found
               </CommandEmpty>
             ) : (
-              gpus.map((gpu) => (
+              filteredGpus.map((gpu) => (
                 <CommandItem
                   key={gpu.key}
                   value={gpu.key}
@@ -119,7 +111,9 @@ export function GPUSelector({ onSelect, selectedModel }: GPUSelectorProps) {
                   className="cursor-pointer"
                 >
                   <div className="flex justify-between w-full items-center">
-                    <span className={gpu.key === selectedModel ? "font-bold" : ""}>
+                    <span
+                      className={gpu.key === selectedModel ? "font-bold" : ""}
+                    >
                       {gpu.Model}
                     </span>
                     <span className="text-sm text-muted-foreground">
@@ -134,7 +128,10 @@ export function GPUSelector({ onSelect, selectedModel }: GPUSelectorProps) {
 
         {selectedModel && selectedGPU && (
           <div className="pt-2">
-            <Badge variant="outline" className="gap-2 py-2 px-4 bg-secondary/50">
+            <Badge
+              variant="outline"
+              className="gap-2 py-2 px-4 bg-secondary/50"
+            >
               <Check className="h-4 w-4 text-primary" />
               <span className="font-medium">{selectedGPU.Model}</span>
               <span className="text-muted-foreground">

@@ -21,4 +21,4 @@ export const cpuDatabase: CPUSpecs[] = [
     base_clock: 3.7,
     performance_tier: "mid",
   },
-]; 
+];

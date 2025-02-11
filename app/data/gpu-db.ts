@@ -17,8 +17,9 @@ export interface GPUSpecs {
 
 export function searchGPUs(gpus: GPUSpecs[], query: string): GPUSpecs[] {
   const lowercaseQuery = query.toLowerCase();
-  return gpus.filter(gpu => 
-    gpu.model.toLowerCase().includes(lowercaseQuery) ||
-    gpu.architecture.toLowerCase().includes(lowercaseQuery)
+  return gpus.filter(
+    (gpu) =>
+      gpu.model.toLowerCase().includes(lowercaseQuery) ||
+      gpu.architecture.toLowerCase().includes(lowercaseQuery),
   );
-} 
+}

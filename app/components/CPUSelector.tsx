@@ -1,10 +1,15 @@
-import React, { useState } from 'react';
-import { Check } from 'lucide-react';
+import React, { useState } from "react";
+import { Check } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Command, CommandInput, CommandList, CommandItem } from "@/components/ui/command";
+import {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandItem,
+} from "@/components/ui/command";
 import { Badge } from "@/components/ui/badge";
-import { CPUSpecs, cpuDatabase } from '@/app/data/hardware-db';
+import { CPUSpecs, cpuDatabase } from "@/app/data/hardware-db";
 
 interface CPUSelectorProps {
   onSelect: (cpu: CPUSpecs) => void;
@@ -13,25 +18,25 @@ interface CPUSelectorProps {
 
 export function CPUSelector({ onSelect, selectedModel }: CPUSelectorProps) {
   const [search, setSearch] = useState("");
-  
-  const filteredCPUs = cpuDatabase.filter(
-    cpu => cpu.model.toLowerCase().includes(search.toLowerCase())
+
+  const filteredCPUs = cpuDatabase.filter((cpu) =>
+    cpu.model.toLowerCase().includes(search.toLowerCase()),
   );
-  
-  const selectedCPU = cpuDatabase.find(cpu => cpu.model === selectedModel);
+
+  const selectedCPU = cpuDatabase.find((cpu) => cpu.model === selectedModel);
 
   return (
     <Card className="w-full">
       <div className="p-4">
         <Label>CPU Model</Label>
         <Command className="rounded-lg border shadow-md">
-          <CommandInput 
+          <CommandInput
             placeholder="Search CPUs..."
             value={search}
             onValueChange={setSearch}
           />
-          {search.length > 0 && (
-            filteredCPUs.length > 0 ? (
+          {search.length > 0 &&
+            (filteredCPUs.length > 0 ? (
               <CommandList>
                 {filteredCPUs.map((cpu) => (
                   <CommandItem
@@ -43,7 +48,11 @@ export function CPUSelector({ onSelect, selectedModel }: CPUSelectorProps) {
                     className="cursor-pointer"
                   >
                     <div className="flex justify-between w-full items-center">
-                      <span className={cpu.model === selectedModel ? "font-bold" : ""}>
+                      <span
+                        className={
+                          cpu.model === selectedModel ? "font-bold" : ""
+                        }
+                      >
                         {cpu.model}
                       </span>
                       <span className="text-sm text-muted-foreground">
@@ -57,8 +66,7 @@ export function CPUSelector({ onSelect, selectedModel }: CPUSelectorProps) {
               <div className="p-4 text-center text-sm text-muted-foreground">
                 No results found
               </div>
-            )
-          )}
+            ))}
         </Command>
 
         {selectedCPU && (
@@ -75,4 +83,4 @@ export function CPUSelector({ onSelect, selectedModel }: CPUSelectorProps) {
       </div>
     </Card>
   );
-} 
+}

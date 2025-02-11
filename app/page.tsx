@@ -1,6 +1,5 @@
 "use client";
 
-import { SystemRequirements } from "./components/SystemRequirements";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { llmModels } from "@/app/data/llm-models";
@@ -45,7 +44,6 @@ export default function Home() {
     GPU: "",
     VRAM: "",
     Storage: "",
-    GPUBandwidth: undefined,
   });
 
   useEffect(() => {
@@ -106,18 +104,15 @@ export default function Home() {
         totalRam:
           systemInfo?.RAM && systemInfo.RAM !== "Unknown"
             ? parseFloat(systemInfo.RAM.split(" ")[0])
-            : 16,
-        ramBandwidth: 48, // Typical DDR4 bandwidth in GB/s
+            : 0,
+        ramBandwidth: 0,
         vramPerGpu:
           systemInfo?.VRAM && systemInfo.VRAM !== "Unknown"
             ? parseFloat(systemInfo.VRAM.split(" ")[0])
-            : 8,
+            : 0,
         numGpus: 1,
-        gpuBandwidth: systemInfo?.GPUBandwidth ?? 300, // Use actual GPU bandwidth if available
         gpuBrand:
-          systemInfo?.GPU && systemInfo.GPU !== "Unknown"
-            ? systemInfo.GPU
-            : "NVIDIA GeForce RTX 3060",
+          systemInfo?.GPU && systemInfo.GPU !== "Unknown" ? systemInfo.GPU : "",
       };
 
       // Use the modelId from the text input (advanced tab), not selectedModel.
@@ -185,81 +180,102 @@ export default function Home() {
               </div>
 
               {/* Model Selection and Actions */}
-              <div className="space-y-6">
-                <ModelSelect
-                  models={llmModels}
-                  selectedModelId={selectedModel?.id}
-                  onModelSelect={handleModelSelect}
-                  className="w-full"
-                  triggerClassName="w-full p-4 text-lg border rounded-lg shadow-sm hover:border-primary/50 transition-colors"
-                  placeholder="Choose a model from our list"
-                />
+              <div className="space-y-8">
+                {/* Step 1 */}
+                <div className="space-y-4">
+                  <h2 className="text-xl font-semibold flex items-center gap-2">
+                    <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary">
+                      1
+                    </span>
+                    Choose a model to compare against
+                  </h2>
+                  <ModelSelect
+                    models={llmModels}
+                    selectedModelId={selectedModel?.id}
+                    onModelSelect={handleModelSelect}
+                    className="w-full"
+                    triggerClassName="w-full p-4 text-lg border rounded-lg shadow-sm hover:border-primary/50 transition-colors"
+                    placeholder="Choose a model from our list"
+                  />
+                </div>
 
-                <Card className="p-6 space-y-6">
-                  <h2 className="text-xl font-semibold">Enter Your Hardware Details</h2>
-                  
-                  <div className="grid gap-6 md:grid-cols-2">
-                    <CPUSelector
-                      onSelect={(cpu: CPUSpecs) => {
-                        setFormData(prev => ({
-                          ...prev,
-                          CPU: cpu.model,
-                        }));
-                      }}
-                      selectedModel={formData.CPU}
-                    />
-
-                    <GPUSelector
-                      onSelect={(gpu: GPUSpecs) => {
-                        setFormData(prev => ({
-                          ...prev,
-                          GPU: gpu.model,
-                          VRAM: `${gpu.vram} GB`,
-                          GPUBandwidth: gpu.bandwidth,
-                        }));
-                      }}
-                      selectedModel={formData.GPU}
-                    />
-
-                    <div className="space-y-2">
-                      <Label>RAM (GB)</Label>
-                      <Input
-                        type="number"
-                        value={formData.RAM.split(" ")[0] || ""}
-                        onChange={(e) =>
+                {/* Step 2 */}
+                <div className="space-y-4">
+                  <h2 className="text-xl font-semibold flex items-center gap-2">
+                    <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary">
+                      2
+                    </span>
+                    Enter your hardware details
+                  </h2>
+                  <Card className="p-6 space-y-6">
+                    <div className="grid gap-6 md:grid-cols-2">
+                      <CPUSelector
+                        onSelect={(cpu: CPUSpecs) => {
                           setFormData((prev) => ({
                             ...prev,
-                            RAM: `${e.target.value} GB`,
-                          }))
-                        }
-                        placeholder="Enter RAM amount"
+                            CPU: cpu.model,
+                          }));
+                        }}
+                        selectedModel={formData.CPU}
                       />
-                    </div>
 
-                    <div className="space-y-2">
-                      <Label>Storage (GB)</Label>
-                      <Input
-                        type="number"
-                        value={formData.Storage.split(" ")[0] || ""}
-                        onChange={(e) =>
+                      <GPUSelector
+                        onSelect={(gpu: GPUSpecs) => {
                           setFormData((prev) => ({
                             ...prev,
-                            Storage: `${e.target.value} GB`,
-                          }))
-                        }
-                        placeholder="Enter storage amount"
+                            GPU: gpu.model,
+                            VRAM: `${gpu.vram} GB`,
+                          }));
+                        }}
+                        selectedModel={formData.GPU}
                       />
-                    </div>
-                  </div>
 
-                  <Button 
-                    className="w-full py-6 bg-primary hover:bg-primary/90 transition-colors shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-lg"
-                    onClick={handleSubmit}
-                    disabled={!selectedModel || !formData.CPU || !formData.GPU || !formData.RAM || !formData.Storage}
-                  >
-                    Check Compatibility
-                  </Button>
-                </Card>
+                      <div className="space-y-2">
+                        <Label>RAM (GB)</Label>
+                        <Input
+                          type="number"
+                          value={formData.RAM.split(" ")[0] || ""}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              RAM: `${e.target.value} GB`,
+                            }))
+                          }
+                          placeholder="Enter RAM amount"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Storage (GB)</Label>
+                        <Input
+                          type="number"
+                          value={formData.Storage.split(" ")[0] || ""}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              Storage: `${e.target.value} GB`,
+                            }))
+                          }
+                          placeholder="Enter storage amount"
+                        />
+                      </div>
+                    </div>
+
+                    <Button
+                      className="w-full py-6 bg-primary hover:bg-primary/90 transition-colors shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+                      onClick={handleSubmit}
+                      disabled={
+                        !selectedModel ||
+                        !formData.CPU ||
+                        !formData.GPU ||
+                        !formData.RAM ||
+                        !formData.Storage
+                      }
+                    >
+                      Check Compatibility
+                    </Button>
+                  </Card>
+                </div>
               </div>
             </div>
           </Card>
@@ -291,10 +307,6 @@ export default function Home() {
                   runAdvancedCheck={runAdvancedCheck}
                   error={error}
                 />
-              </div>
-
-              <div id="model-requirements" className="space-y-6">
-                <SystemRequirements />
               </div>
             </div>
           </section>
