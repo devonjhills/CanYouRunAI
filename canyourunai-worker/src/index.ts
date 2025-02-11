@@ -76,7 +76,7 @@ export default {
 
 		try {
 			const cacheUrl = new URL(request.url);
-			const cache = caches.default;
+			const cache = (caches as unknown as { default: Cache }).default;
 			let response = await cache.match(cacheUrl);
 
 			if (!response) {

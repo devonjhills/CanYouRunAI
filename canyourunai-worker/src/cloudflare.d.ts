@@ -4,4 +4,8 @@ declare global {
   };
 }
 
+declare const caches: {
+    default: Cache;
+};
+
 export {}; 
