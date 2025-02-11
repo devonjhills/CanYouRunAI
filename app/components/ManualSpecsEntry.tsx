@@ -86,17 +86,24 @@ export function ManualSpecsEntry({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {trigger || <Button variant="outline">Enter Specs Manually</Button>}
+        {trigger || (
+          <Button variant="outline" className="w-full">
+            <MonitorCog className="w-4 h-4" />
+            Enter Specs Manually
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Enter System Specifications</DialogTitle>
+          <DialogTitle className="text-xl font-semibold">
+            Enter System Specifications
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid gap-4">
             {/* CPU Input */}
             <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm font-medium">
+              <label className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                 <Cpu className="w-4 h-4 text-primary" />
                 CPU
               </label>
@@ -106,13 +113,13 @@ export function ManualSpecsEntry({
                   setFormData((prev) => ({ ...prev, CPU: e.target.value }))
                 }
                 placeholder="e.g., Intel Core i7-12700K"
-                className="neo-input"
+                className="w-full bg-background border-input"
               />
             </div>
 
             {/* GPU Input */}
             <div className="space-y-2">
-              <label className="flex items-center gap-2 text-sm font-medium">
+              <label className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                 <MonitorCog className="w-4 h-4 text-primary" />
                 GPU
               </label>
@@ -122,7 +129,7 @@ export function ManualSpecsEntry({
                   setFormData((prev) => ({ ...prev, GPU: e.target.value }))
                 }
                 placeholder="e.g., NVIDIA RTX 3080"
-                className="neo-input"
+                className="w-full bg-background border-input"
               />
             </div>
 
@@ -154,7 +161,7 @@ export function ManualSpecsEntry({
               },
             ].map((field) => (
               <div key={field.key} className="space-y-2">
-                <label className="flex items-center gap-2 text-sm font-medium">
+                <label className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
                   {field.icon}
                   {field.label} (GB)
                 </label>
@@ -165,14 +172,14 @@ export function ManualSpecsEntry({
                   value={formData[field.key as keyof typeof formData]}
                   onChange={(e) => handleNumericInput(e, field.key)}
                   placeholder={field.placeholder}
-                  className="neo-input"
+                  className="w-full bg-background border-input"
                 />
               </div>
             ))}
           </div>
           <Button
             type="submit"
-            className="w-full neo-brutalist-shadow hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all"
+            className="w-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
           >
             Save Specifications
           </Button>

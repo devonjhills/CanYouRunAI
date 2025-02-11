@@ -7,12 +7,12 @@ import { ModeToggle } from "@/components/ui/toggle";
 
 export const Header = () => {
   return (
-    <header className="bg-background/80 backdrop-blur-sm border-b border-border">
+    <header className="bg-background/80 backdrop-blur-sm border-b border-border sticky top-0 z-50">
       <nav className="max-w-6xl mx-auto flex items-center justify-between px-6 py-4">
         {/* Logo */}
         <Link
           href="/"
-          className="flex items-center gap-2 neo-hover text-foreground"
+          className="flex items-center gap-2 transition-opacity hover:opacity-80 text-foreground"
         >
           <Image
             src="/logo.png"

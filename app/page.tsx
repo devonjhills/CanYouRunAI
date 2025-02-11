@@ -174,7 +174,7 @@ export default function Home() {
       <section className="py-12 px-6 bg-gradient-to-b from-background to-muted/30">
         <div className="max-w-6xl mx-auto space-y-12">
           {/* Hero Section with System Check */}
-          <Card className="neo-card p-8 border-2 shadow-2xl relative overflow-hidden">
+          <Card className="p-8 border-2 shadow-2xl relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent pointer-events-none" />
             <div className="relative space-y-8">
               <div className="max-w-2xl">
@@ -191,7 +191,7 @@ export default function Home() {
                   selectedModelId={selectedModel?.id}
                   onModelSelect={handleModelSelect}
                   className="w-full"
-                  triggerClassName="neo-input w-full p-4 text-lg hover:border-primary/50 transition-colors"
+                  triggerClassName="w-full p-4 text-lg border rounded-lg shadow-sm hover:border-primary/50 transition-colors"
                   placeholder="Choose a model from our list"
                 />
 
@@ -253,7 +253,7 @@ export default function Home() {
                   </div>
 
                   <Button 
-                    className="w-full neo-button py-6 bg-primary hover:bg-primary/90 transition-colors shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+                    className="w-full py-6 bg-primary hover:bg-primary/90 transition-colors shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-lg"
                     onClick={handleSubmit}
                     disabled={!selectedModel || !formData.CPU || !formData.GPU || !formData.RAM || !formData.Storage}
                   >

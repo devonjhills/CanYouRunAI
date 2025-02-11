@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Check } from 'lucide-react';
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Command, CommandInput, CommandList, CommandItem } from "@/components/ui/command";
+import { Command, CommandInput, CommandList, CommandItem, CommandEmpty } from "@/components/ui/command";
 import { Badge } from "@/components/ui/badge";
 import { GPUSpecs } from '@/app/data/gpu-db';
 
@@ -68,55 +68,58 @@ export function GPUSelector({ onSelect, selectedModel }: GPUSelectorProps) {
   }, [search]);
 
   return (
-    <Card className="w-full">
+    <Card className="w-full shadow-sm hover:shadow-md transition-all">
       <div className="p-4">
         <Label>GPU Model</Label>
-        <Command shouldFilter={false} className="rounded-lg border shadow-md">
+        <Command shouldFilter={false} className="rounded-lg border shadow-sm">
           <CommandInput 
             placeholder="Search GPUs..."
             value={search}
             onValueChange={setSearch}
           />
-          {search.length > 0 && (
-            isLoading ? (
-              <div className="p-4 text-center text-sm text-muted-foreground">Loading...</div>
+          <CommandList>
+            {isLoading ? (
+              <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
+                Loading...
+              </CommandEmpty>
             ) : error ? (
-              <div className="p-4 text-center text-sm text-red-500">{error}</div>
-            ) : gpus.length > 0 ? (
-              <CommandList>
-                {gpus.map((gpu) => (
-                  <CommandItem
-                    key={gpu.key}
-                    onSelect={() => {
-                      setSelectedGPU(gpu);
-                      onSelect(gpu);
-                      setSearch("");
-                    }}
-                    className="cursor-pointer"
-                  >
-                    <div className="flex justify-between w-full items-center">
-                      <span className={gpu.key === selectedModel ? "font-bold" : ""}>
-                        {gpu.Model}
-                      </span>
-                      <span className="text-sm text-muted-foreground">
-                        {gpu.vram}GB VRAM
-                      </span>
-                    </div>
-                  </CommandItem>
-                ))}
-              </CommandList>
-            ) : (
-              <div className="p-4 text-center text-sm text-muted-foreground">
+              <CommandEmpty className="py-6 text-center text-sm text-red-500">
+                {error}
+              </CommandEmpty>
+            ) : gpus.length === 0 && search.length > 0 ? (
+              <CommandEmpty className="py-6 text-center text-sm text-muted-foreground">
                 No results found
-              </div>
-            )
-          )}
+              </CommandEmpty>
+            ) : (
+              gpus.map((gpu) => (
+                <CommandItem
+                  key={gpu.key}
+                  value={gpu.key}
+                  onSelect={() => {
+                    setSelectedGPU(gpu);
+                    onSelect(gpu);
+                    setSearch("");
+                  }}
+                  className="cursor-pointer"
+                >
+                  <div className="flex justify-between w-full items-center">
+                    <span className={gpu.key === selectedModel ? "font-bold" : ""}>
+                      {gpu.Model}
+                    </span>
+                    <span className="text-sm text-muted-foreground">
+                      {gpu.vram}GB VRAM
+                    </span>
+                  </div>
+                </CommandItem>
+              ))
+            )}
+          </CommandList>
         </Command>
 
         {selectedModel && selectedGPU && (
           <div className="pt-2">
-            <Badge variant="outline" className="gap-2 py-2 px-4">
-              <Check className="h-4 w-4 text-green-500" />
+            <Badge variant="outline" className="gap-2 py-2 px-4 bg-secondary/50">
+              <Check className="h-4 w-4 text-primary" />
               <span className="font-medium">{selectedGPU.Model}</span>
               <span className="text-muted-foreground">
                 ({selectedGPU.vram}GB VRAM)
@@ -128,3 +131,5 @@ export function GPUSelector({ onSelect, selectedModel }: GPUSelectorProps) {
     </Card>
   );
 }
+
+export default GPUSelector;
