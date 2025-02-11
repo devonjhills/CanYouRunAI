@@ -96,26 +96,33 @@ export function AdvancedAnalysisSection({
 
   return (
     <TooltipProvider>
-      <section className="space-y-6 max-w-7xl mx-auto">
-        {/* Section Header */}
-        <div className="text-center space-y-4 p-6 bg-muted/30 rounded-xl shadow-sm">
-          <h2 className="text-3xl font-bold">Advanced Model Analysis</h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
-            For advanced users: Check memory requirements and performance
-            estimates for specific Hugging Face models.
-          </p>
-        </div>
+      <section className="max-w-7xl mx-auto px-4 py-12">
+        <Card className="overflow-hidden border-muted/20">
+          {/* Hero Section */}
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-secondary/10 to-muted/10" />
+            <div className="relative text-center space-y-4 px-8 py-12">
+              <h2 className="text-4xl font-bold tracking-tight">
+                Advanced Model Analysis
+              </h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
+                For advanced users: Check memory requirements and performance
+                estimates for specific Hugging Face models.
+              </p>
+            </div>
+          </div>
 
-        {/* Main Card Container */}
-        <Card className="shadow-sm">
-          <CardContent className="space-y-8 p-6">
+          <CardContent className="space-y-8 p-8 pt-6 bg-gradient-to-b from-background/50 to-background">
             {/* Trending Models Section */}
-            <div className="rounded-xl overflow-hidden shadow-sm">
-              <div className="bg-secondary/20 p-4 border-b">
-                <label className="text-lg font-semibold">Popular Models</label>
+            <div className="rounded-xl overflow-hidden border shadow-sm bg-card">
+              <div className="bg-gradient-to-r from-secondary/20 to-secondary/10 p-4 border-b">
+                <label className="text-lg font-semibold flex items-center gap-2">
+                  <CircuitBoard className="h-5 w-5 text-secondary-foreground/70" />
+                  Popular Models
+                </label>
               </div>
-              <div className="p-4 bg-background">
-                <div className="flex flex-wrap gap-2">
+              <div className="p-6">
+                <div className="flex flex-wrap gap-3">
                   {TRENDING_MODELS.map((model) => (
                     <HoverCard key={model.id}>
                       <HoverCardTrigger asChild>
@@ -123,15 +130,17 @@ export function AdvancedAnalysisSection({
                           variant="outline"
                           size="sm"
                           onClick={() => setModelId(model.id)}
-                          className="text-xs bg-background hover:bg-accent/20"
+                          className="text-sm hover:bg-secondary/80 transition-colors duration-200"
                         >
                           {model.id.split("/")[1]}
                         </Button>
                       </HoverCardTrigger>
-                      <HoverCardContent className="w-auto p-3 shadow-md">
-                        <div className="space-y-1">
-                          <p className="text-sm font-mono">{model.id}</p>
-                          <p className="text-xs text-muted-foreground">
+                      <HoverCardContent className="w-auto p-4">
+                        <div className="space-y-2">
+                          <p className="text-sm font-mono font-medium">
+                            {model.id}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
                             {model.description}
                           </p>
                         </div>
@@ -143,27 +152,35 @@ export function AdvancedAnalysisSection({
             </div>
 
             {/* Model Input Section */}
-            <div className="rounded-xl overflow-hidden shadow-sm">
-              <div className="bg-primary/20 p-4 border-b">
-                <label className="text-lg font-semibold">
+            <div className="rounded-xl overflow-hidden border shadow-sm bg-card">
+              <div className="bg-gradient-to-r from-primary/20 to-primary/10 p-4 border-b">
+                <label className="text-lg font-semibold flex items-center gap-2">
+                  <Cpu className="h-5 w-5 text-primary-foreground/70" />
                   Hugging Face Model ID
                 </label>
               </div>
-              <div className="p-4 bg-background">
+              <div className="p-6">
                 <div className="flex gap-4">
                   <input
                     type="text"
                     value={modelId}
                     onChange={(e) => setModelId(e.target.value)}
                     placeholder="e.g., microsoft/phi-2"
-                    className="flex-1 border rounded px-3 py-2 focus:outline-none focus:ring"
+                    className="flex-1 px-4 py-2 rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-ring transition-all duration-200"
                   />
                   <Button
                     onClick={runAdvancedCheck}
                     disabled={loading || !modelId}
-                    className="px-6"
+                    className="px-6 min-w-[140px] bg-primary hover:bg-primary/90 transition-all duration-200"
                   >
-                    {loading ? "Analyzing..." : "Analyze Model"}
+                    {loading ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                        Analyzing...
+                      </div>
+                    ) : (
+                      "Analyze Model"
+                    )}
                   </Button>
                 </div>
               </div>
@@ -172,7 +189,10 @@ export function AdvancedAnalysisSection({
             {/* Quantization Results */}
             {analysis && (
               <div className="space-y-6">
-                <h3 className="text-xl font-semibold">Quantization Options</h3>
+                <h3 className="text-xl font-semibold flex items-center gap-2">
+                  <Layers className="h-5 w-5 text-muted-foreground" />
+                  Quantization Options
+                </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {Object.entries(analysis.quantizationResults).map(
                     ([level, result]) => (
@@ -379,22 +399,17 @@ export function AdvancedAnalysisSection({
                           <CircuitBoard className="h-4 w-4 text-muted-foreground" />
                           <Tooltip>
                             <TooltipTrigger className="flex items-center gap-1.5 group">
-                              <span className="text-sm">GPU</span>
+                              <span className="text-sm">Bandwidth</span>
                               <HelpCircle className="h-3 w-3 text-muted-foreground group-hover:text-foreground transition-colors" />
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>Graphics processor model</p>
+                              <p>GPU memory bandwidth in GB/s</p>
                             </TooltipContent>
                           </Tooltip>
                         </div>
-                        <Tooltip>
-                          <TooltipTrigger className="font-mono text-sm truncate max-w-[200px]">
-                            {analysis.systemSpecs.gpuBrand}
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>{analysis.systemSpecs.gpuBrand}</p>
-                          </TooltipContent>
-                        </Tooltip>
+                        <span className="font-mono text-sm">
+                          {analysis.systemSpecs.gpuBandwidth} GB/s
+                        </span>
                       </div>
                       <div className="grid gap-3">
                         <div className="flex items-center gap-3">

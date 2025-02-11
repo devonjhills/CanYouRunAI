@@ -11,9 +11,10 @@ import {
 } from "@/components/ui/command";
 import { Badge } from "@/components/ui/badge";
 import { GPUSpecs } from "@/app/data/gpu-db";
+import { SystemInfo } from "./SystemChecker";
 
 interface GPUSelectorProps {
-  onSelect: (gpu: GPUSpecs) => void;
+  onSelect: (gpu: SystemInfo) => void;
   selectedModel?: string;
 }
 
@@ -74,6 +75,56 @@ export function GPUSelector({ onSelect, selectedModel }: GPUSelectorProps) {
     }
   }, [selectedModel, selectedGPU, allGpus]);
 
+  const handleGPUSelect = (gpu: GPUSpecs) => {
+    console.log("Selected GPU Data:", {
+      rawGpu: gpu,
+      formattedGpu: {
+        GPU: gpu.Model,
+        VRAM: `${gpu.vram} GB`,
+        GPUBandwidth:
+          typeof gpu["Memory Bandwidth (GB/s)"] === "string"
+            ? parseFloat(gpu["Memory Bandwidth (GB/s)"])
+            : gpu["Memory Bandwidth (GB/s)"] || 0,
+        GPUDetails: {
+          codeName: gpu["Code name"]?.toString(),
+          busInterface: gpu["Bus interface"]?.toString(),
+          memoryBusType: gpu["Memory Bus type"]?.toString(),
+          memoryBusWidth: gpu["Memory Bus width (bit)"]?.toString(),
+          tdp: gpu["TDP (Watts)"]?.toString(),
+          process: gpu["Process"]?.toString(),
+          baseCoreClock: gpu["Clock speeds Base core clock (MHz)"]?.toString(),
+          boostCoreClock:
+            gpu["Clock speeds Boost core clock (MHz)"]?.toString(),
+        },
+      },
+    });
+
+    const selectedGpu: SystemInfo = {
+      GPU: gpu.Model,
+      VRAM: `${gpu.vram} GB`,
+      RAM: "", // Keep existing RAM
+      CPU: "", // Keep existing CPU
+      Storage: "", // Keep existing Storage
+      GPUBandwidth:
+        typeof gpu["Memory Bandwidth (GB/s)"] === "string"
+          ? parseFloat(gpu["Memory Bandwidth (GB/s)"])
+          : gpu["Memory Bandwidth (GB/s)"] || 0,
+      GPUDetails: {
+        codeName: gpu["Code name"]?.toString(),
+        busInterface: gpu["Bus interface"]?.toString(),
+        memoryBusType: gpu["Memory Bus type"]?.toString(),
+        memoryBusWidth: gpu["Memory Bus width (bit)"]?.toString(),
+        tdp: gpu["TDP (Watts)"]?.toString(),
+        process: gpu["Process"]?.toString(),
+        baseCoreClock: gpu["Clock speeds Base core clock (MHz)"]?.toString(),
+        boostCoreClock: gpu["Clock speeds Boost core clock (MHz)"]?.toString(),
+      },
+    };
+    onSelect(selectedGpu);
+    setSelectedGPU(gpu);
+    setSearch("");
+  };
+
   return (
     <Card className="w-full shadow-sm hover:shadow-md transition-all">
       <div className="p-4">
@@ -103,9 +154,7 @@ export function GPUSelector({ onSelect, selectedModel }: GPUSelectorProps) {
                   key={gpu.key}
                   value={gpu.key}
                   onSelect={() => {
-                    setSelectedGPU(gpu);
-                    onSelect(gpu);
-                    setSearch("");
+                    handleGPUSelect(gpu);
                   }}
                   className="cursor-pointer"
                 >

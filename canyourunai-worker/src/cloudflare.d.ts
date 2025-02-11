@@ -1,11 +1,11 @@
 declare global {
-  const caches: {
-    default: Cache;
-  };
+	const caches: {
+		default: Cache;
+	};
 }
 
 declare const caches: {
-    default: Cache;
+	default: Cache;
 };
 
-export {}; 
+export {};

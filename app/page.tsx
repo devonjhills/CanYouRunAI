@@ -9,13 +9,11 @@ import { SystemInfo, SystemChecker } from "@/app/components/SystemChecker";
 import Cookies from "js-cookie";
 import type { SystemSpecs, AdvancedAnalysis } from "./data/llm-models";
 import { AdvancedAnalysisSection } from "./components/AdvancedAnalysis";
-import { ModelSelect } from "@/app/components/ModelSelect";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { CPUSelector } from "@/app/components/CPUSelector";
 import { GPUSelector } from "@/app/components/GPUSelector";
 import { CPUSpecs } from "@/app/data/hardware-db";
-import { GPUSpecs } from "@/app/data/gpu-db";
 
 const isProd = process.env.NODE_ENV === "production";
 
@@ -28,7 +26,6 @@ export default function Home() {
   const [systemInfo, setSystemInfo] = useState<SystemInfo | undefined>(
     undefined,
   );
-  const [selectedModel, setSelectedModel] = useState<LLMModel | undefined>();
   const [comparisonModel, setComparisonModel] = useState<LLMModel | undefined>(
     undefined,
   );
@@ -59,29 +56,21 @@ export default function Home() {
     }
   }, []);
 
-  const handleModelSelect = (modelId: string) => {
-    const model = llmModels.find((m) => m.id === modelId);
-    setSelectedModel(model);
-    setComparisonModel(model);
-  };
-
   // Store system info
   const storeSystemInfo = (info: SystemInfo) => {
-    const timestamp = new Date().toISOString();
+    const storageData = {
+      ...info,
+      lastChecked: new Date().toISOString(),
+    };
+
     if (isProd) {
-      Cookies.set("systemInfo", JSON.stringify(info), {
-        expires: 1,
-        secure: true,
-        sameSite: "none",
-      });
-      Cookies.set("systemInfoTimestamp", timestamp, {
-        expires: 1,
-        secure: true,
-        sameSite: "none",
+      Cookies.set("systemInfo", JSON.stringify(storageData), { expires: 30 });
+      Cookies.set("systemInfoTimestamp", new Date().toISOString(), {
+        expires: 30,
       });
     } else {
-      localStorage.setItem("systemInfo", JSON.stringify(info));
-      localStorage.setItem("systemInfoTimestamp", timestamp);
+      localStorage.setItem("systemInfo", JSON.stringify(storageData));
+      localStorage.setItem("systemInfoTimestamp", new Date().toISOString());
     }
   };
 
@@ -105,7 +94,6 @@ export default function Home() {
           systemInfo?.RAM && systemInfo.RAM !== "Unknown"
             ? parseFloat(systemInfo.RAM.split(" ")[0])
             : 0,
-        ramBandwidth: 0,
         vramPerGpu:
           systemInfo?.VRAM && systemInfo.VRAM !== "Unknown"
             ? parseFloat(systemInfo.VRAM.split(" ")[0])
@@ -113,6 +101,7 @@ export default function Home() {
         numGpus: 1,
         gpuBrand:
           systemInfo?.GPU && systemInfo.GPU !== "Unknown" ? systemInfo.GPU : "",
+        gpuBandwidth: systemInfo?.GPUBandwidth || 0,
       };
 
       // Use the modelId from the text input (advanced tab), not selectedModel.
@@ -168,7 +157,7 @@ export default function Home() {
     <div className="min-h-screen">
       <section className="py-12 px-6 bg-gradient-to-b from-background to-muted/30">
         <div className="max-w-6xl mx-auto space-y-12">
-          {/* Hero Section with System Check */}
+          {/* Hero Section with Hardware Input */}
           <Card className="p-8 border-2 shadow-2xl relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent pointer-events-none" />
             <div className="relative space-y-8">
@@ -177,106 +166,82 @@ export default function Home() {
                   Can I Run this LLM{" "}
                   <span className="text-primary">locally?</span>
                 </h1>
+                <p className="text-lg text-muted-foreground">
+                  Enter your hardware details below to check which AI models you
+                  can run on your system.
+                </p>
               </div>
 
-              {/* Model Selection and Actions */}
-              <div className="space-y-8">
-                {/* Step 1 */}
-                <div className="space-y-4">
-                  <h2 className="text-xl font-semibold flex items-center gap-2">
-                    <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary">
-                      1
-                    </span>
-                    Choose a model to compare against
-                  </h2>
-                  <ModelSelect
-                    models={llmModels}
-                    selectedModelId={selectedModel?.id}
-                    onModelSelect={handleModelSelect}
-                    className="w-full"
-                    triggerClassName="w-full p-4 text-lg border rounded-lg shadow-sm hover:border-primary/50 transition-colors"
-                    placeholder="Choose a model from our list"
+              {/* Hardware Input Section */}
+              <Card className="p-6 space-y-6">
+                <div className="grid gap-6 md:grid-cols-2">
+                  <CPUSelector
+                    onSelect={(cpu: CPUSpecs) => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        CPU: cpu.model,
+                      }));
+                    }}
+                    selectedModel={formData.CPU}
                   />
-                </div>
 
-                {/* Step 2 */}
-                <div className="space-y-4">
-                  <h2 className="text-xl font-semibold flex items-center gap-2">
-                    <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary">
-                      2
-                    </span>
-                    Enter your hardware details
-                  </h2>
-                  <Card className="p-6 space-y-6">
-                    <div className="grid gap-6 md:grid-cols-2">
-                      <CPUSelector
-                        onSelect={(cpu: CPUSpecs) => {
-                          setFormData((prev) => ({
-                            ...prev,
-                            CPU: cpu.model,
-                          }));
-                        }}
-                        selectedModel={formData.CPU}
-                      />
+                  <GPUSelector
+                    onSelect={(gpu) => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        GPU: gpu.GPU,
+                        VRAM: gpu.VRAM,
+                        GPUBandwidth: gpu.GPUBandwidth,
+                        GPUDetails: gpu.GPUDetails,
+                      }));
+                    }}
+                    selectedModel={formData.GPU}
+                  />
 
-                      <GPUSelector
-                        onSelect={(gpu: GPUSpecs) => {
-                          setFormData((prev) => ({
-                            ...prev,
-                            GPU: gpu.model,
-                            VRAM: `${gpu.vram} GB`,
-                          }));
-                        }}
-                        selectedModel={formData.GPU}
-                      />
-
-                      <div className="space-y-2">
-                        <Label>RAM (GB)</Label>
-                        <Input
-                          type="number"
-                          value={formData.RAM.split(" ")[0] || ""}
-                          onChange={(e) =>
-                            setFormData((prev) => ({
-                              ...prev,
-                              RAM: `${e.target.value} GB`,
-                            }))
-                          }
-                          placeholder="Enter RAM amount"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Storage (GB)</Label>
-                        <Input
-                          type="number"
-                          value={formData.Storage.split(" ")[0] || ""}
-                          onChange={(e) =>
-                            setFormData((prev) => ({
-                              ...prev,
-                              Storage: `${e.target.value} GB`,
-                            }))
-                          }
-                          placeholder="Enter storage amount"
-                        />
-                      </div>
-                    </div>
-
-                    <Button
-                      className="w-full py-6 bg-primary hover:bg-primary/90 transition-colors shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-lg"
-                      onClick={handleSubmit}
-                      disabled={
-                        !selectedModel ||
-                        !formData.CPU ||
-                        !formData.GPU ||
-                        !formData.RAM ||
-                        !formData.Storage
+                  <div className="space-y-2">
+                    <Label>RAM (GB)</Label>
+                    <Input
+                      type="number"
+                      value={formData.RAM.split(" ")[0] || ""}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          RAM: `${e.target.value} GB`,
+                        }))
                       }
-                    >
-                      Check Compatibility
-                    </Button>
-                  </Card>
+                      placeholder="Enter RAM amount"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Storage (GB)</Label>
+                    <Input
+                      type="number"
+                      value={formData.Storage.split(" ")[0] || ""}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          Storage: `${e.target.value} GB`,
+                        }))
+                      }
+                      placeholder="Enter storage amount"
+                    />
+                  </div>
                 </div>
-              </div>
+
+                <Button
+                  className="w-full py-6 bg-primary hover:bg-primary/90 transition-colors shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+                  onClick={handleSubmit}
+                  disabled={
+                    !formData.CPU ||
+                    !formData.GPU ||
+                    !formData.RAM ||
+                    !formData.Storage
+                  }
+                >
+                  Check Model Compatibility
+                </Button>
+              </Card>
             </div>
           </Card>
 
@@ -296,20 +261,18 @@ export default function Home() {
           )}
 
           {/* Rest of the sections */}
-          <section className="bg-muted/30 py-16">
-            <div className="space-y-16">
-              <div id="advanced-analysis">
-                <AdvancedAnalysisSection
-                  analysis={analysis}
-                  loading={loading}
-                  modelId={modelId}
-                  setModelId={setModelId}
-                  runAdvancedCheck={runAdvancedCheck}
-                  error={error}
-                />
-              </div>
+          <div className="space-y-16">
+            <div id="advanced-analysis">
+              <AdvancedAnalysisSection
+                analysis={analysis}
+                loading={loading}
+                modelId={modelId}
+                setModelId={setModelId}
+                runAdvancedCheck={runAdvancedCheck}
+                error={error}
+              />
             </div>
-          </section>
+          </div>
         </div>
       </section>
     </div>

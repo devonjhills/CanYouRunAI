@@ -313,10 +313,10 @@ export const QUANTIZATION_LEVELS: QuantizationLevel[] = [
 
 export interface SystemSpecs {
   totalRam: number;
-  ramBandwidth: number;
   vramPerGpu: number;
   numGpus: number;
-  gpuBrand: string;
+  gpuBrand?: string;
+  gpuBandwidth: number;
 }
 
 export interface ModelAnalysis {

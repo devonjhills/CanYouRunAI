@@ -5,6 +5,12 @@ import { LLMModel } from "@/app/data/llm-models";
 import { Cpu, MemoryStick, MonitorCog, HardDrive } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { ModelSelect } from "@/app/components/ModelSelect";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { ChevronDown } from "lucide-react";
 
 export interface SystemInfo {
   CPU: string;
@@ -12,6 +18,17 @@ export interface SystemInfo {
   GPU: string;
   VRAM: string;
   Storage: string;
+  GPUBandwidth?: number;
+  GPUDetails?: {
+    codeName?: string;
+    busInterface?: string;
+    memoryBusType?: string;
+    memoryBusWidth?: string;
+    tdp?: string;
+    process?: string;
+    baseCoreClock?: string;
+    boostCoreClock?: string;
+  };
 }
 
 interface SystemCheckerProps {
@@ -30,13 +47,13 @@ function compareRAMorVRAM(actual: string, required: string): boolean {
   return actualGB >= requiredGB;
 }
 
-export function SystemChecker({
+export const SystemChecker = ({
   systemInfo,
   comparisonModel,
   models,
   onModelSelect,
   lastChecked,
-}: SystemCheckerProps) {
+}: SystemCheckerProps) => {
   const comparisonSpecs = [
     {
       icon: <MemoryStick className="w-5 h-5 text-primary" />,
@@ -68,17 +85,37 @@ export function SystemChecker({
   ];
 
   return (
-    <Card
-      className="w-full overflow-hidden h-full border-2"
-      id="system-requirements"
-    >
-      <div className="border-b bg-background px-6 py-4">
-        <h2 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-primary/90 to-primary bg-clip-text text-transparent">
-          System Requirements Check
-        </h2>
-      </div>
+    <Card className="p-6 space-y-6">
+      <div className="space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center gap-4 justify-between">
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold">System Requirements Check</h2>
+            <p className="text-muted-foreground">
+              Last checked:{" "}
+              {lastChecked
+                ? new Date(lastChecked).toLocaleString(undefined, {
+                    year: "numeric",
+                    month: "numeric",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : "Never"}
+            </p>
+          </div>
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
+            <p className="text-sm text-muted-foreground">
+              Select a model to compare your hardware against:
+            </p>
+            <ModelSelect
+              models={models}
+              selectedModelId={comparisonModel?.id}
+              onModelSelect={onModelSelect}
+              className="min-w-[200px]"
+            />
+          </div>
+        </div>
 
-      <div className="p-6 space-y-6">
         <Card className="bg-muted/30">
           <div className="p-4">
             <h3 className="text-lg font-semibold mb-3">My Computer Details</h3>
@@ -94,29 +131,70 @@ export function SystemChecker({
               </div>
               <div className="flex items-center gap-2">
                 <MonitorCog className="w-4 h-4 text-primary" />
-                <div>
+                <div className="w-full">
                   <span className="text-sm text-muted-foreground">GPU:</span>
-                  <p className="text-sm font-medium">
-                    {systemInfo?.GPU || "Not specified"}
-                  </p>
+                  <Collapsible>
+                    <CollapsibleTrigger className="flex items-center gap-2 w-full group">
+                      <p className="text-sm font-medium group-hover:text-primary">
+                        {systemInfo?.GPU || "Not specified"}
+                      </p>
+                      <ChevronDown className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="mt-2 space-y-2 border rounded-md p-3 bg-muted/30">
+                      <div className="text-sm space-y-1.5">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">VRAM:</span>
+                          <span>{systemInfo?.VRAM || "N/A"}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">
+                            Memory Bandwidth:
+                          </span>
+                          <span>
+                            {systemInfo?.GPUBandwidth
+                              ? `${systemInfo.GPUBandwidth} GB/s`
+                              : "N/A"}
+                          </span>
+                        </div>
+                        {systemInfo?.GPUDetails && (
+                          <>
+                            <div className="my-2 border-t border-border/50" />
+                            {Object.entries({
+                              "Code Name": systemInfo.GPUDetails.codeName,
+                              "Bus Interface":
+                                systemInfo.GPUDetails.busInterface,
+                              "Memory Type":
+                                systemInfo.GPUDetails.memoryBusType,
+                              "Memory Bus Width":
+                                systemInfo.GPUDetails.memoryBusWidth,
+                              TDP: systemInfo.GPUDetails.tdp,
+                              "Process Node": systemInfo.GPUDetails.process,
+                              "Base Clock": systemInfo.GPUDetails.baseCoreClock,
+                              "Boost Clock":
+                                systemInfo.GPUDetails.boostCoreClock,
+                            }).map(([label, value]) =>
+                              value ? (
+                                <div
+                                  key={label}
+                                  className="flex justify-between"
+                                >
+                                  <span className="text-muted-foreground">
+                                    {label}:
+                                  </span>
+                                  <span>{value}</span>
+                                </div>
+                              ) : null,
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
                 </div>
               </div>
             </div>
-            {lastChecked && (
-              <p className="text-xs text-muted-foreground mt-3">
-                Last entered: {new Date(lastChecked).toLocaleString()}
-              </p>
-            )}
           </div>
         </Card>
-
-        <div className="flex justify-end">
-          <ModelSelect
-            models={models}
-            selectedModelId={comparisonModel?.id}
-            onModelSelect={onModelSelect}
-          />
-        </div>
 
         <div className="space-y-3">
           {comparisonSpecs.map((spec) => (
@@ -161,4 +239,4 @@ export function SystemChecker({
       </div>
     </Card>
   );
-}
+};

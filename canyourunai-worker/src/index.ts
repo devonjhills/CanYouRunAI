@@ -35,7 +35,7 @@ type GPUDatabase = {
 
 const ALLOWED_ORIGINS = {
 	development: ['http://localhost:3000'] as string[],
-	production: ['https://www.canyourunai.com', 'https://canyourunai.com'] as string[]
+	production: ['https://www.canyourunai.com', 'https://canyourunai.com'] as string[],
 };
 
 const CORS_HEADERS = {
@@ -46,12 +46,11 @@ const CORS_HEADERS = {
 	'Cache-Control': 'public, max-age=3600',
 } as const;
 
-
 function getCorsHeaders(requestUrl: string, origin: string): Record<string, string> {
 	// Check the origin header for development indicators
 	const isDevelopment = origin.includes('localhost') || origin.includes('127.0.0.1');
 	const allowedOrigins = isDevelopment ? ALLOWED_ORIGINS.development : ALLOWED_ORIGINS.production;
-	
+
 	// Add debug headers in development
 	const headers = {
 		...CORS_HEADERS,
@@ -59,7 +58,7 @@ function getCorsHeaders(requestUrl: string, origin: string): Record<string, stri
 		'Debug-Origin': origin,
 		'Debug-Allowed-Origins': JSON.stringify(allowedOrigins),
 	};
-	
+
 	// If origin is allowed, return it in the header
 	if (allowedOrigins.includes(origin)) {
 		return {
@@ -67,14 +66,13 @@ function getCorsHeaders(requestUrl: string, origin: string): Record<string, stri
 			'Access-Control-Allow-Origin': origin,
 		};
 	}
-	
+
 	// Default to blocking unknown origins
 	return {
 		...headers,
 		'Access-Control-Allow-Origin': ALLOWED_ORIGINS.production[0],
 	};
 }
-  
 
 function processGPUData(gpu: RawGPUData): ProcessedGPU {
 	// Get memory size from either MiB or GiB field
@@ -111,7 +109,7 @@ export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
 		const url = new URL(request.url);
 		const origin = request.headers.get('Origin') || ALLOWED_ORIGINS.production[0];
-		
+
 		// Handle preflight requests
 		if (request.method === 'OPTIONS') {
 			return new Response(null, {
@@ -126,7 +124,7 @@ export default {
 		}
 
 		const corsHeaders = getCorsHeaders(request.url, origin);
-		
+
 		try {
 			let response: Response | undefined;
 			const cache = (caches as unknown as { default: Cache }).default;
@@ -137,7 +135,7 @@ export default {
 				response = await cache.match(cacheUrl);
 
 				if (!response) {
-					const gpuData = await env.GPU_DATABASE.get('gpu-database', { type: 'json' }) as GPUDatabase | null;
+					const gpuData = (await env.GPU_DATABASE.get('gpu-database', { type: 'json' })) as GPUDatabase | null;
 
 					if (!gpuData) {
 						console.error('GPU database is null or undefined');
@@ -194,26 +192,32 @@ export default {
 				});
 			}
 
-			return response || new Response('Not Found', {
-				status: 404,
-				headers: corsHeaders,
-			});
+			return (
+				response ||
+				new Response('Not Found', {
+					status: 404,
+					headers: corsHeaders,
+				})
+			);
 		} catch (error: unknown) {
 			const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 			const errorStack = error instanceof Error ? error.stack : undefined;
-			
+
 			console.error('Detailed error:', {
 				message: errorMessage,
 				stack: errorStack,
-				error
+				error,
 			});
-			return new Response(JSON.stringify({ 
-				error: 'Internal Server Error',
-				details: errorMessage 
-			}), {
-				status: 500,
-				headers: corsHeaders,
-			});
+			return new Response(
+				JSON.stringify({
+					error: 'Internal Server Error',
+					details: errorMessage,
+				}),
+				{
+					status: 500,
+					headers: corsHeaders,
+				},
+			);
 		}
 	},
 } satisfies ExportedHandler<Env>;

@@ -346,13 +346,16 @@ function isValidConfig(config: unknown): config is ModelConfig {
   );
 }
 
-// Helper functions for token speed calculations
-function estimateBaseTks(bw: number, mem: number) {
+// Add helper functions for token speed calculations
+function estimateBaseTks(bw: number, mem: number): number | null {
   if (!bw || !mem || mem <= 0) return null;
   return (bw / mem) * 0.9;
 }
 
-function calculateTks(baseTks: number | null, offloadRatio: number) {
+function calculateTks(
+  baseTks: number | null,
+  offloadRatio: number,
+): number | null {
   if (baseTks === null || isNaN(offloadRatio)) return null;
   return (
     baseTks * (0.052 * Math.exp((4.55 * (100 - offloadRatio)) / 100) + 1.06)
