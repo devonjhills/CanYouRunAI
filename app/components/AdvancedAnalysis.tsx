@@ -121,17 +121,17 @@ function QuantizationCard({
     >
       <div
         className={cn(
-          "p-5 bg-gradient-to-r flex items-center justify-between",
+          "px-6 py-5 bg-gradient-to-r flex items-center justify-between",
           canRun
             ? "from-green-100/30 to-green-50/20 dark:from-green-900/10 dark:to-green-900/20"
             : "from-red-100/30 to-red-50/20 dark:from-red-900/10 dark:to-red-900/20",
         )}
       >
-        <div className="space-y-1.5">
-          <h3 className={cn("font-bold text-lg", !canRun && "text-red-600")}>
+        <div className="space-y-2">
+          <h3 className={cn("font-bold text-xl", !canRun && "text-red-600")}>
             {level.toUpperCase()}
           </h3>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground line-clamp-2">
             {
               QUANTIZATION_DESCRIPTIONS[
                 level as keyof typeof QUANTIZATION_DESCRIPTIONS
@@ -141,20 +141,20 @@ function QuantizationCard({
         </div>
         <Badge
           variant={canRun ? "secondary" : "destructive"}
-          className="gap-2 px-3 py-1.5 rounded-full shadow-sm"
+          className="gap-2 px-4 py-2 rounded-full shadow-sm h-auto"
         >
           {canRun ? (
-            <Rocket className="h-4 w-4" />
+            <Rocket className="h-5 w-5" />
           ) : (
-            <HardDrive className="h-4 w-4" />
+            <HardDrive className="h-5 w-5" />
           )}
-          <span className="text-sm">{result.runType}</span>
+          <span className="text-sm font-medium">{result.runType}</span>
         </Badge>
       </div>
 
-      <CardContent className="p-5 space-y-4 bg-background">
+      <CardContent className="p-6 space-y-6 bg-background">
         {memoryUsed > 0 && (
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">Memory Usage</span>
               <span className="text-sm font-mono text-muted-foreground">
@@ -163,20 +163,19 @@ function QuantizationCard({
             </div>
             <Progress
               value={(memoryUsed / vramAvailable) * 100}
-              className="h-2 bg-muted"
+              className="h-3 bg-muted"
               style={{
-                // @ts-expect-error - Shadcn uses CSS variable for indicator color
-                "--progress-primary":
+                ["--progress-primary" as string]:
                   memoryUsed > vramAvailable ? "#ef4444" : "#22c55e",
               }}
             />
           </div>
         )}
 
-        <div className="grid gap-3">
+        <div className="grid gap-4">
           {result.tokensPerSecond !== null && (
             <MetricRow
-              icon={<Gauge className="h-5 w-5 text-blue-500" />}
+              icon={<Gauge className="h-6 w-6 text-blue-500" />}
               label="Speed"
               value={formatTokensPerSecond(result.tokensPerSecond)}
               tooltip="Estimated generation speed"
@@ -184,7 +183,7 @@ function QuantizationCard({
           )}
           {result.maxContext !== null && (
             <MetricRow
-              icon={<BrainCircuit className="h-5 w-5 text-purple-500" />}
+              icon={<BrainCircuit className="h-6 w-6 text-purple-500" />}
               label="Context Window"
               value={`${result.maxContext.toLocaleString()} tokens`}
               tooltip="Maximum input length supported"
@@ -192,7 +191,7 @@ function QuantizationCard({
           )}
           {result.offloadPercentage > 0 && (
             <MetricRow
-              icon={<Layers className="h-5 w-5 text-orange-500" />}
+              icon={<Layers className="h-6 w-6 text-orange-500" />}
               label="GPU Utilization"
               value={`${(100 - result.offloadPercentage).toFixed(1)}%`}
               tooltip="Percentage of model loaded in GPU memory"
@@ -216,9 +215,9 @@ function MetricRow({
   tooltip: string;
 }) {
   return (
-    <div className="flex items-center justify-between p-3 rounded-lg bg-muted/10 hover:bg-muted/20 transition-colors">
+    <div className="flex items-center justify-between p-4 rounded-lg bg-muted/10 hover:bg-muted/20 transition-colors gap-4">
       <Tooltip>
-        <TooltipTrigger className="flex items-center gap-3 w-full">
+        <TooltipTrigger className="flex items-center gap-4 w-full">
           <span className="shrink-0">{icon}</span>
           <span className="text-sm font-medium">{label}</span>
         </TooltipTrigger>
@@ -226,7 +225,34 @@ function MetricRow({
           <p className="text-sm max-w-[200px] text-center">{tooltip}</p>
         </TooltipContent>
       </Tooltip>
-      <span className="font-mono text-sm font-semibold">{value}</span>
+      <span className="font-mono text-sm font-semibold whitespace-nowrap">
+        {value}
+      </span>
+    </div>
+  );
+}
+
+// Updated SpecItem component:
+function SpecItem({
+  icon,
+  label,
+  value,
+  className,
+}: {
+  icon?: React.ReactNode;
+  label: string;
+  value: string | number;
+  className?: string;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4 p-3 rounded-lg bg-muted/10 hover:bg-muted/20 transition-colors">
+      <div className="flex items-center gap-3">
+        {icon && <span className="text-muted-foreground">{icon}</span>}
+        <span className="text-sm font-medium">{label}</span>
+      </div>
+      <span className={cn("font-mono text-sm font-semibold", className)}>
+        {value}
+      </span>
     </div>
   );
 }
@@ -358,7 +384,7 @@ export function AdvancedAnalysisSection({
                       Quantization Levels
                     </h2>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  <div className="grid grid-cols-1 gap-4 w-full">
                     {Object.entries(analysis.quantizationResults).map(
                       ([level, result]) => (
                         <QuantizationCard
@@ -517,27 +543,5 @@ export function AdvancedAnalysisSection({
         </Card>
       </section>
     </TooltipProvider>
-  );
-}
-
-function SpecItem({
-  icon,
-  label,
-  value,
-  className,
-}: {
-  icon?: React.ReactNode;
-  label: string;
-  value: string | number;
-  className?: string;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-4 p-2 rounded-lg bg-muted/10">
-      <div className="flex items-center gap-2">
-        {icon && <span className="text-muted-foreground">{icon}</span>}
-        <span className="text-sm">{label}</span>
-      </div>
-      <span className={cn("font-medium text-sm", className)}>{value}</span>
-    </div>
   );
 }
