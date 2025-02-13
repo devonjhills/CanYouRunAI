@@ -158,11 +158,11 @@ export default function Home() {
       <section className="py-12 px-6 bg-gradient-to-b from-background to-muted/30">
         <div className="max-w-6xl mx-auto space-y-12">
           {/* Hero Section with Hardware Input */}
-          <Card className="p-8 border-2 shadow-2xl relative overflow-hidden">
+          <Card className="glass p-12 border-2 shadow-2xl relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent pointer-events-none" />
-            <div className="relative space-y-8">
+            <div className="relative space-y-8 ">
               <div className="max-w-2xl">
-                <h1 className="text-4xl md:text-5xl font-black leading-tight mb-4">
+                <h1 className="text-4xl md:text-5xl font-black leading-tight mb-4 text-gradient">
                   Can I Run this LLM{" "}
                   <span className="text-primary">locally?</span>
                 </h1>
@@ -173,32 +173,36 @@ export default function Home() {
               </div>
 
               {/* Hardware Input Section */}
-              <Card className="p-6 space-y-6">
+              <Card className="p-6 space-y-6 shadow-md">
                 <div className="grid gap-6 md:grid-cols-2">
-                  <CPUSelector
-                    onSelect={(cpu: CPUSpecs) => {
-                      setFormData((prev) => ({
-                        ...prev,
-                        CPU: cpu.model,
-                      }));
-                    }}
-                    selectedModel={formData.CPU}
-                  />
+                  <div className="space-y-3">
+                    <CPUSelector
+                      onSelect={(cpu: CPUSpecs) => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          CPU: cpu.model,
+                        }));
+                      }}
+                      selectedModel={formData.CPU}
+                    />
+                  </div>
 
-                  <GPUSelector
-                    onSelect={(gpu) => {
-                      setFormData((prev) => ({
-                        ...prev,
-                        GPU: gpu.GPU,
-                        VRAM: gpu.VRAM,
-                        GPUBandwidth: gpu.GPUBandwidth,
-                        GPUDetails: gpu.GPUDetails,
-                      }));
-                    }}
-                    selectedModel={formData.GPU}
-                  />
+                  <div className="space-y-3">
+                    <GPUSelector
+                      onSelect={(gpu) => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          GPU: gpu.GPU,
+                          VRAM: gpu.VRAM,
+                          GPUBandwidth: gpu.GPUBandwidth,
+                          GPUDetails: gpu.GPUDetails,
+                        }));
+                      }}
+                      selectedModel={formData.GPU}
+                    />
+                  </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <Label>RAM (GB)</Label>
                     <Input
                       type="number"
@@ -213,7 +217,7 @@ export default function Home() {
                     />
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <Label>Storage (GB)</Label>
                     <Input
                       type="number"
@@ -230,7 +234,7 @@ export default function Home() {
                 </div>
 
                 <Button
-                  className="w-full py-6 bg-primary hover:bg-primary/90 transition-colors shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+                  className="w-full py-6 bg-primary hover:bg-primary/90 transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-lg"
                   onClick={handleSubmit}
                   disabled={
                     !formData.CPU ||

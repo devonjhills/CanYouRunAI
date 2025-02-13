@@ -16,6 +16,7 @@ interface SystemSpecs {
   totalRam: number;
   ramBandwidth: number;
   gpuBrand?: string;
+  cpuBrand?: string;
 }
 
 interface ModelAnalysis {
@@ -115,6 +116,11 @@ async function handleRequest(request: Request): Promise<Response> {
         );
       }
 
+      // Add default RAM bandwidth if not provided
+      if (!systemSpecs.ramBandwidth) {
+        systemSpecs.ramBandwidth = estimateRamBandwidth(systemSpecs);
+      }
+
       // Try to fetch the config first to check for access restrictions
       const configResponse = await fetch(
         `https://huggingface.co/${modelId}/resolve/main/config.json`,
@@ -166,6 +172,7 @@ async function handleRequest(request: Request): Promise<Response> {
           bpw,
           systemSpecs.ramBandwidth,
           modelConfig,
+          systemSpecs,
         );
       }
 
@@ -260,10 +267,17 @@ async function fetchModelParams(modelId: string): Promise<number | null> {
 }
 
 function estimateModelParams(config: ModelConfig): number {
-  const vocabSize = config.vocab_size ?? 0;
-  const embeddingParams = vocabSize * config.hidden_size;
-  const layerParams = config.num_hidden_layers * 6 * config.hidden_size ** 2;
-  return embeddingParams + layerParams;
+  const vocabSize = config.vocab_size ?? 32000; // Default vocab size
+  const hiddenSize = config.hidden_size;
+  const numLayers = config.num_hidden_layers;
+
+  // More accurate parameter calculation
+  const embeddingParams = vocabSize * hiddenSize;
+  const attentionParams = 4 * numLayers * hiddenSize * hiddenSize;
+  const ffnParams = 8 * numLayers * hiddenSize * hiddenSize;
+  const miscParams = hiddenSize * hiddenSize; // Layer norms, etc.
+
+  return embeddingParams + attentionParams + ffnParams + miscParams;
 }
 
 async function fetchModelSummary(modelId: string): Promise<ModelSummary> {
@@ -322,14 +336,22 @@ function calculateMaxTokens(
 ): number {
   const bytesPerElement =
     (config.torch_dtype ?? "float16") === "float32" ? 4 : 2;
-  const memoryPerToken =
+
+  // KV cache memory per token
+  const kvCachePerToken =
+    2 * // Key and value states
     config.num_hidden_layers *
     config.num_key_value_heads *
     (config.hidden_size / config.num_attention_heads) *
-    2 *
     bytesPerElement;
+
+  // Additional memory per token for activations
+  const activationsPerToken = config.hidden_size * bytesPerElement * 2; // Factor for intermediate activations
+
+  const totalMemoryPerToken = kvCachePerToken + activationsPerToken;
   const availableMemoryBytes = availableMemoryGb * 1024 ** 3;
-  const maxTokens = Math.floor(availableMemoryBytes / memoryPerToken);
+
+  const maxTokens = Math.floor(availableMemoryBytes / totalMemoryPerToken);
   return Math.min(maxTokens, config.max_position_embeddings);
 }
 
@@ -349,7 +371,7 @@ function isValidConfig(config: unknown): config is ModelConfig {
 // Add helper functions for token speed calculations
 function estimateBaseTks(bw: number, mem: number): number | null {
   if (!bw || !mem || mem <= 0) return null;
-  return (bw / mem) * 0.9;
+  return (bw / mem) * 0.9; // 90% efficiency factor
 }
 
 function calculateTks(
@@ -357,9 +379,27 @@ function calculateTks(
   offloadRatio: number,
 ): number | null {
   if (baseTks === null || isNaN(offloadRatio)) return null;
+
+  // More accurate token speed calculation based on offload ratio
   return (
     baseTks * (0.052 * Math.exp((4.55 * (100 - offloadRatio)) / 100) + 1.06)
   );
+}
+
+// Add this helper function for calculating multi-GPU bandwidth
+function calculateMultiGpuBandwidth(
+  baseBandwidth: number,
+  numGpus: number,
+): number {
+  let totalBandwidth = baseBandwidth;
+  let coef = 1;
+
+  for (let i = 1; i < numGpus; i++) {
+    totalBandwidth += baseBandwidth * coef;
+    coef = 0.42; // Diminishing returns for additional GPUs
+  }
+
+  return totalBandwidth;
 }
 
 function analyzeQuantization(
@@ -370,14 +410,22 @@ function analyzeQuantization(
   bpw: number,
   ramBandwidth: number,
   config: ModelConfig,
+  systemSpecs: SystemSpecs,
 ): ModelAnalysis {
   const requiredMem = (paramsB * bpw) / 8 / 1e9;
   let ctx = 0;
 
+  // Update bandwidth calculation when using it
+  const adjustedBandwidth = calculateMultiGpuBandwidth(
+    bandwidth,
+    systemSpecs.numGpus,
+  );
+
   // All in VRAM case
   if (requiredMem <= vramGb) {
     ctx = calculateMaxTokens(vramGb - requiredMem, config);
-    const tks = bandwidth && requiredMem ? bandwidth / requiredMem : null;
+    const tks =
+      adjustedBandwidth && requiredMem ? adjustedBandwidth / requiredMem : null;
     return {
       runType: "All in VRAM",
       memoryRequired: requiredMem,
@@ -391,7 +439,9 @@ function analyzeQuantization(
   if (requiredMem <= vramGb + 1 && vramGb > 1) {
     ctx = calculateMaxTokens(ramGb + vramGb - requiredMem, config);
     const tks =
-      bandwidth && requiredMem ? (bandwidth / requiredMem) * 0.9 : null;
+      adjustedBandwidth && requiredMem
+        ? (adjustedBandwidth / requiredMem) * 0.9
+        : null;
     return {
       runType: "KV cache offload",
       memoryRequired: requiredMem,
@@ -461,4 +511,19 @@ function cleanupMarkdown(text: string): string {
       // If description is too long, truncate it
       .slice(0, 2000)
   );
+}
+
+function estimateRamBandwidth(systemSpecs: SystemSpecs): number {
+  const { gpuBrand, totalRam } = systemSpecs;
+
+  // Estimate based on total RAM size and GPU type
+  if (gpuBrand?.toLowerCase().includes("apple")) {
+    if (totalRam >= 32) return 200;
+    return 100;
+  }
+
+  // Conservative estimates for other systems
+  if (totalRam >= 32) return 64;
+  if (totalRam >= 16) return 48;
+  return 32;
 }

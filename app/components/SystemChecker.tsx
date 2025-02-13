@@ -2,15 +2,31 @@
 
 import React from "react";
 import { LLMModel } from "@/app/data/llm-models";
-import { Cpu, MemoryStick, MonitorCog, HardDrive } from "lucide-react";
+import {
+  Cpu,
+  MemoryStick,
+  MonitorCog,
+  HardDrive,
+  LifeBuoy,
+  ChevronDown,
+  CheckCircle2,
+  XCircle,
+} from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { ModelSelect } from "@/app/components/ModelSelect";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ChevronDown } from "lucide-react";
+import { ModelSelect } from "@/app/components/ModelSelect";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export interface SystemInfo {
   CPU: string;
@@ -47,6 +63,33 @@ function compareRAMorVRAM(actual: string, required: string): boolean {
   return actualGB >= requiredGB;
 }
 
+const SystemSpecItem = ({
+  icon,
+  label,
+  value,
+  tooltip,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  tooltip?: string;
+}) => (
+  <TooltipProvider>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <div className="flex items-center gap-3 p-3 bg-muted/5 rounded-lg border">
+          <span className="text-primary">{icon}</span>
+          <div>
+            <p className="text-sm font-medium text-foreground">{value}</p>
+            <p className="text-xs text-muted-foreground">{label}</p>
+          </div>
+        </div>
+      </TooltipTrigger>
+      {tooltip && <TooltipContent>{tooltip}</TooltipContent>}
+    </Tooltip>
+  </TooltipProvider>
+);
+
 export const SystemChecker = ({
   systemInfo,
   comparisonModel,
@@ -56,7 +99,7 @@ export const SystemChecker = ({
 }: SystemCheckerProps) => {
   const comparisonSpecs = [
     {
-      icon: <MemoryStick className="w-5 h-5 text-primary" />,
+      icon: <MemoryStick className="w-5 h-5" />,
       label: "RAM",
       value: systemInfo?.RAM || "Unknown",
       isValid:
@@ -66,7 +109,7 @@ export const SystemChecker = ({
       requirement: comparisonModel?.requirements.RAM || "N/A",
     },
     {
-      icon: <MemoryStick className="w-5 h-5 text-primary" />,
+      icon: <MemoryStick className="w-5 h-5" />,
       label: "VRAM",
       value: systemInfo?.VRAM || "Unknown",
       isValid:
@@ -76,7 +119,7 @@ export const SystemChecker = ({
       requirement: comparisonModel?.requirements.VRAM || "N/A",
     },
     {
-      icon: <HardDrive className="w-5 h-5 text-primary" />,
+      icon: <HardDrive className="w-5 h-5" />,
       label: "Storage",
       value: systemInfo?.Storage || "Unknown",
       isValid: systemInfo?.Storage !== "Unknown",
@@ -85,156 +128,184 @@ export const SystemChecker = ({
   ];
 
   return (
-    <Card className="p-6 space-y-6">
-      <div className="space-y-4">
-        <div className="flex flex-col md:flex-row md:items-center gap-4 justify-between">
-          <div className="space-y-2">
-            <h2 className="text-2xl font-bold">System Requirements Check</h2>
-            <p className="text-muted-foreground">
-              Last checked:{" "}
+    <Card className="p-6 space-y-6 backdrop-blur-sm bg-background/80">
+      <div className="space-y-6">
+        {/* Header Section */}
+        <div className="flex flex-col gap-4 md:flex-row md:items-center justify-between">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-bold tracking-tight">
+              System Compatibility Check
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Last system check:{" "}
               {lastChecked
-                ? new Date(lastChecked).toLocaleString(undefined, {
-                    year: "numeric",
-                    month: "numeric",
-                    day: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })
+                ? new Date(lastChecked).toLocaleDateString()
                 : "Never"}
             </p>
           </div>
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-3">
+          <div className="flex flex-col gap-2 min-w-[300px]">
             <p className="text-sm text-muted-foreground">
-              Select a model to compare your hardware against:
+              Compare against model:
             </p>
             <ModelSelect
               models={models}
               selectedModelId={comparisonModel?.id}
               onModelSelect={onModelSelect}
-              className="min-w-[200px]"
+              placeholder="Select AI Model..."
             />
           </div>
         </div>
 
-        <Card className="bg-muted/30">
-          <div className="p-4">
-            <h3 className="text-lg font-semibold mb-3">My Computer Details</h3>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="flex items-center gap-2">
-                <Cpu className="w-4 h-4 text-primary" />
-                <div>
-                  <span className="text-sm text-muted-foreground">CPU:</span>
-                  <p className="text-sm font-medium">
-                    {systemInfo?.CPU || "Not specified"}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <MonitorCog className="w-4 h-4 text-primary" />
-                <div className="w-full">
-                  <span className="text-sm text-muted-foreground">GPU:</span>
-                  <Collapsible>
-                    <CollapsibleTrigger className="flex items-center gap-2 w-full group">
-                      <p className="text-sm font-medium group-hover:text-primary">
-                        {systemInfo?.GPU || "Not specified"}
-                      </p>
-                      <ChevronDown className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-transform duration-200 group-data-[state=open]:rotate-180" />
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="mt-2 space-y-2 border rounded-md p-3 bg-muted/30">
-                      <div className="text-sm space-y-1.5">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">VRAM:</span>
-                          <span>{systemInfo?.VRAM || "N/A"}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">
-                            Memory Bandwidth:
-                          </span>
-                          <span>
-                            {systemInfo?.GPUBandwidth
-                              ? `${systemInfo.GPUBandwidth} GB/s`
-                              : "N/A"}
-                          </span>
-                        </div>
-                        {systemInfo?.GPUDetails && (
-                          <>
-                            <div className="my-2 border-t border-border/50" />
-                            {Object.entries({
-                              "Code Name": systemInfo.GPUDetails.codeName,
-                              "Bus Interface":
-                                systemInfo.GPUDetails.busInterface,
-                              "Memory Type":
-                                systemInfo.GPUDetails.memoryBusType,
-                              "Memory Bus Width":
-                                systemInfo.GPUDetails.memoryBusWidth,
-                              TDP: systemInfo.GPUDetails.tdp,
-                              "Process Node": systemInfo.GPUDetails.process,
-                              "Base Clock": systemInfo.GPUDetails.baseCoreClock,
-                              "Boost Clock":
-                                systemInfo.GPUDetails.boostCoreClock,
-                            }).map(([label, value]) =>
-                              value ? (
-                                <div
-                                  key={label}
-                                  className="flex justify-between"
-                                >
-                                  <span className="text-muted-foreground">
-                                    {label}:
-                                  </span>
-                                  <span>{value}</span>
-                                </div>
-                              ) : null,
-                            )}
-                          </>
-                        )}
-                      </div>
-                    </CollapsibleContent>
-                  </Collapsible>
-                </div>
-              </div>
-            </div>
-          </div>
-        </Card>
+        <Separator className="bg-border/50" />
 
-        <div className="space-y-3">
-          {comparisonSpecs.map((spec) => (
-            <div key={spec.label} className="flex gap-4">
-              <div
-                className={`flex-1 flex items-center space-x-3 p-3 rounded-lg border-2 transition-all ${
-                  spec.isValid
-                    ? "bg-green-500/5 border-green-500/30 hover:border-green-500/50"
-                    : "bg-red-500/5 border-red-500/30 hover:border-red-500/50"
-                }`}
-              >
-                {spec.icon}
-                <span className="text-muted-foreground font-medium">
-                  {spec.label}:
-                </span>
-                <span
-                  className={`font-semibold ${
-                    spec.isValid ? "text-green-600" : "text-red-600"
-                  }`}
-                >
-                  {spec.value}
-                </span>
-              </div>
-              <div
-                className={`flex-1 flex items-center space-x-3 p-3 rounded-lg border-2 transition-all ${
-                  spec.isValid
-                    ? "bg-green-500/5 border-green-500/30 hover:border-green-500/50"
-                    : "bg-red-500/5 border-red-500/30 hover:border-red-500/50"
-                }`}
-              >
-                {spec.icon}
-                <span className="text-muted-foreground font-medium">
-                  {spec.label}:
-                </span>
-                <span className="font-semibold text-foreground">
-                  {spec.requirement}
-                </span>
-              </div>
+        {/* System Specifications */}
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold">Hardware Overview</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            <SystemSpecItem
+              icon={<Cpu className="w-5 h-5" />}
+              label="CPU"
+              value={systemInfo?.CPU || "Not detected"}
+              tooltip="Central Processing Unit"
+            />
+            <SystemSpecItem
+              icon={<MemoryStick className="w-5 h-5" />}
+              label="System RAM"
+              value={systemInfo?.RAM || "Not detected"}
+              tooltip="System Random Access Memory"
+            />
+            <SystemSpecItem
+              icon={<MonitorCog className="w-5 h-5" />}
+              label="GPU"
+              value={systemInfo?.GPU || "Not detected"}
+              tooltip="Graphics Processing Unit"
+            />
+            <SystemSpecItem
+              icon={<MemoryStick className="w-5 h-5" />}
+              label="VRAM"
+              value={systemInfo?.VRAM || "Not detected"}
+              tooltip="Video Random Access Memory"
+            />
+            <SystemSpecItem
+              icon={<HardDrive className="w-5 h-5" />}
+              label="Storage"
+              value={systemInfo?.Storage || "Not detected"}
+              tooltip="Storage Capacity"
+            />
+          </div>
+
+          {/* GPU Details Collapsible */}
+          {systemInfo?.GPUDetails && (
+            <Collapsible className="bg-muted/5 rounded-lg border">
+              <CollapsibleTrigger className="w-full p-4 flex items-center justify-between hover:bg-muted/10 transition-colors">
+                <div className="flex items-center gap-2">
+                  <MonitorCog className="w-5 h-5 text-primary" />
+                  <span className="text-sm font-medium">
+                    Advanced GPU Details
+                  </span>
+                </div>
+                <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform duration-200" />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="p-4 pt-0 border-t">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  {Object.entries({
+                    Bandwidth: systemInfo.GPUBandwidth
+                      ? `${systemInfo.GPUBandwidth} GB/s`
+                      : "N/A",
+                    "Code Name": systemInfo.GPUDetails.codeName,
+                    "Memory Type": systemInfo.GPUDetails.memoryBusType,
+                    "Bus Width": systemInfo.GPUDetails.memoryBusWidth,
+                    TDP: systemInfo.GPUDetails.tdp,
+                    "Process Node": systemInfo.GPUDetails.process,
+                    "Base Clock": systemInfo.GPUDetails.baseCoreClock,
+                    "Boost Clock": systemInfo.GPUDetails.boostCoreClock,
+                  }).map(
+                    ([label, value]) =>
+                      value && (
+                        <div key={label} className="space-y-1">
+                          <p className="text-muted-foreground text-xs">
+                            {label}
+                          </p>
+                          <p className="font-medium">{value}</p>
+                        </div>
+                      ),
+                  )}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          )}
+        </div>
+
+        <Separator className="bg-border/50" />
+
+        {/* Compatibility Section */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <LifeBuoy className="w-6 h-6 text-primary" />
+            <h2 className="text-lg font-semibold">
+              Compatibility with {comparisonModel?.name || "Selected Model"}
+            </h2>
+          </div>
+
+          {!comparisonModel ? (
+            <div className="p-6 text-center text-muted-foreground bg-muted/10 rounded-lg">
+              Select a model to view compatibility requirements
             </div>
-          ))}
+          ) : (
+            <div className="space-y-3">
+              {comparisonSpecs.map((spec) => (
+                <Card
+                  key={spec.label}
+                  className={cn(
+                    "p-4 flex flex-col sm:flex-row items-center gap-4 transition-all",
+                    spec.isValid ? "border-green-500/20" : "border-red-500/20",
+                  )}
+                >
+                  <div className="flex items-center gap-3 w-full sm:w-auto">
+                    <span className="text-muted-foreground">{spec.icon}</span>
+                    <div className="flex-1">
+                      <h3 className="font-medium">{spec.label}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Minimum required
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4 w-full sm:w-auto sm:ml-auto">
+                    <div className="text-center">
+                      <p className="text-sm text-muted-foreground">
+                        Your System
+                      </p>
+                      <p className="font-medium">{spec.value}</p>
+                    </div>
+
+                    <div className="h-8 w-px bg-border/50" />
+
+                    <div className="text-center">
+                      <p className="text-sm text-muted-foreground">Required</p>
+                      <p className="font-medium">{spec.requirement}</p>
+                    </div>
+
+                    <div className="flex items-center gap-2 ml-4">
+                      {spec.isValid ? (
+                        <CheckCircle2 className="w-6 h-6 text-green-500" />
+                      ) : (
+                        <XCircle className="w-6 h-6 text-red-500" />
+                      )}
+                      <span
+                        className={cn(
+                          "text-sm font-medium",
+                          spec.isValid ? "text-green-500" : "text-red-500",
+                        )}
+                      >
+                        {spec.isValid ? "Compatible" : "Insufficient"}
+                      </span>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </Card>

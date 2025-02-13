@@ -7,11 +7,18 @@ import {
   InfoIcon,
   ChevronUpIcon,
   ChevronDownIcon,
-  HelpCircle,
   CircuitBoard,
   MemoryStick,
   Cpu,
   Layers,
+  Rocket,
+  Gauge,
+  BrainCircuit,
+  HardDrive,
+  Loader2,
+  ScanSearch,
+  X,
+  AlertCircle,
 } from "lucide-react";
 import { Collapsible, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
@@ -27,22 +34,32 @@ import {
   TooltipTrigger,
   TooltipProvider,
 } from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Progress } from "@/components/ui/progress";
 
-const QUANTIZATION_BPWS = {
-  fp8: 8.0,
-  q6_k_s: 6.6,
-  q5_k_s: 5.5,
-  q4_k_m: 4.8,
-  IQ4_XS: 4.3,
-  q3_k_m: 3.9,
-  IQ3_XS: 3.3,
-  IQ2_XS: 2.4,
+const QUANTIZATION_DESCRIPTIONS = {
+  fp8: "8-bit floating point - Highest precision, largest size",
+  q6_k_s: "6-bit quantization - Very good balance of quality and size",
+  q5_k_s: "5-bit quantization - Good balance of quality and size",
+  q4_k_m: "4-bit medium quantization - Decent quality, smaller size",
+  IQ4_XS: "4-bit improved quantization - Better quality than standard 4-bit",
+  q3_k_m: "3-bit medium quantization - Lower quality, very small size",
+  IQ3_XS: "3-bit improved quantization - Better quality than standard 3-bit",
+  IQ2_XS: "2-bit improved quantization - Lowest quality, smallest size",
 } as const;
 
 function formatTokensPerSecond(tps: number | undefined) {
   if (!tps) return "N/A";
-  if (tps < 1) return `${(tps * 1000).toFixed(1)} t/ms`;
-  return `${tps.toFixed(1)} t/s`;
+  if (tps < 1) return `${(tps * 1000).toFixed(1)} tokens/ms`;
+  if (tps > 100) return `${(tps / 1000).toFixed(2)}k tokens/s`;
+  return `${tps.toFixed(1)} tokens/s`;
+}
+
+function formatMemory(gb: number | undefined) {
+  if (!gb) return "N/A";
+  if (gb < 1) return `${(gb * 1000).toFixed(0)} MB`;
+  return `${gb.toFixed(1)} GB`;
 }
 
 interface AdvancedAnalysisProps {
@@ -84,6 +101,136 @@ function cleanModelDescription(description: string): string {
     .trim();
 }
 
+function QuantizationCard({
+  level,
+  result,
+}: {
+  level: string;
+  result: ModelAnalysis;
+}) {
+  const canRun = result.runType !== "Won't run";
+  const memoryUsed = result.memoryRequired || 0;
+  const vramAvailable = 24; // Example value
+
+  return (
+    <Card
+      className={cn(
+        "group relative overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1",
+        !canRun && "opacity-80 grayscale",
+      )}
+    >
+      <div
+        className={cn(
+          "p-5 bg-gradient-to-r flex items-center justify-between",
+          canRun
+            ? "from-green-100/30 to-green-50/20 dark:from-green-900/10 dark:to-green-900/20"
+            : "from-red-100/30 to-red-50/20 dark:from-red-900/10 dark:to-red-900/20",
+        )}
+      >
+        <div className="space-y-1.5">
+          <h3 className={cn("font-bold text-lg", !canRun && "text-red-600")}>
+            {level.toUpperCase()}
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            {
+              QUANTIZATION_DESCRIPTIONS[
+                level as keyof typeof QUANTIZATION_DESCRIPTIONS
+              ]
+            }
+          </p>
+        </div>
+        <Badge
+          variant={canRun ? "secondary" : "destructive"}
+          className="gap-2 px-3 py-1.5 rounded-full shadow-sm"
+        >
+          {canRun ? (
+            <Rocket className="h-4 w-4" />
+          ) : (
+            <HardDrive className="h-4 w-4" />
+          )}
+          <span className="text-sm">{result.runType}</span>
+        </Badge>
+      </div>
+
+      <CardContent className="p-5 space-y-4 bg-background">
+        {memoryUsed > 0 && (
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">Memory Usage</span>
+              <span className="text-sm font-mono text-muted-foreground">
+                {formatMemory(memoryUsed)} / {vramAvailable}GB
+              </span>
+            </div>
+            <Progress
+              value={(memoryUsed / vramAvailable) * 100}
+              className="h-2 bg-muted"
+              style={{
+                // @ts-expect-error - Shadcn uses CSS variable for indicator color
+                "--progress-primary":
+                  memoryUsed > vramAvailable ? "#ef4444" : "#22c55e",
+              }}
+            />
+          </div>
+        )}
+
+        <div className="grid gap-3">
+          {result.tokensPerSecond !== null && (
+            <MetricRow
+              icon={<Gauge className="h-5 w-5 text-blue-500" />}
+              label="Speed"
+              value={formatTokensPerSecond(result.tokensPerSecond)}
+              tooltip="Estimated generation speed"
+            />
+          )}
+          {result.maxContext !== null && (
+            <MetricRow
+              icon={<BrainCircuit className="h-5 w-5 text-purple-500" />}
+              label="Context Window"
+              value={`${result.maxContext.toLocaleString()} tokens`}
+              tooltip="Maximum input length supported"
+            />
+          )}
+          {result.offloadPercentage > 0 && (
+            <MetricRow
+              icon={<Layers className="h-5 w-5 text-orange-500" />}
+              label="GPU Utilization"
+              value={`${(100 - result.offloadPercentage).toFixed(1)}%`}
+              tooltip="Percentage of model loaded in GPU memory"
+            />
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function MetricRow({
+  icon,
+  label,
+  value,
+  tooltip,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  tooltip: string;
+}) {
+  return (
+    <div className="flex items-center justify-between p-3 rounded-lg bg-muted/10 hover:bg-muted/20 transition-colors">
+      <Tooltip>
+        <TooltipTrigger className="flex items-center gap-3 w-full">
+          <span className="shrink-0">{icon}</span>
+          <span className="text-sm font-medium">{label}</span>
+        </TooltipTrigger>
+        <TooltipContent side="top">
+          <p className="text-sm max-w-[200px] text-center">{tooltip}</p>
+        </TooltipContent>
+      </Tooltip>
+      <span className="font-mono text-sm font-semibold">{value}</span>
+    </div>
+  );
+}
+
 export function AdvancedAnalysisSection({
   analysis,
   loading,
@@ -96,475 +243,301 @@ export function AdvancedAnalysisSection({
 
   return (
     <TooltipProvider>
-      <section className="max-w-7xl mx-auto px-4 py-12">
-        <Card className="overflow-hidden border-muted/20">
+      <section className="max-w-7xl mx-auto px-4 py-8">
+        <Card className="overflow-hidden border shadow-xl">
           {/* Hero Section */}
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-secondary/10 to-muted/10" />
-            <div className="relative text-center space-y-4 px-8 py-12">
-              <h2 className="text-4xl font-bold tracking-tight">
-                Advanced Model Analysis
-              </h2>
+          <div className="relative bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+            <div className="relative px-8 py-12 space-y-6 text-center">
+              <div className="inline-flex items-center gap-3 px-6 py-3 bg-background rounded-full shadow-sm border">
+                <Rocket className="h-8 w-8 text-primary" />
+                <h1 className="text-3xl font-bold tracking-tight">
+                  Advanced Model Analyzer
+                </h1>
+              </div>
               <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
-                For advanced users: Check memory requirements and performance
-                estimates for specific Hugging Face models.
+                Predict performance characteristics and memory requirements for
+                LLMs across different quantization levels.
               </p>
             </div>
           </div>
 
-          <CardContent className="space-y-8 p-8 pt-6 bg-gradient-to-b from-background/50 to-background">
+          <CardContent className="space-y-8 p-8 pt-6">
             {/* Trending Models Section */}
-            <div className="rounded-xl overflow-hidden border shadow-sm bg-card">
-              <div className="bg-gradient-to-r from-secondary/20 to-secondary/10 p-4 border-b">
-                <label className="text-lg font-semibold flex items-center gap-2">
-                  <CircuitBoard className="h-5 w-5 text-secondary-foreground/70" />
-                  Popular Models
-                </label>
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <CircuitBoard className="h-6 w-6 text-primary" />
+                <h2 className="text-xl font-semibold">Popular Models</h2>
               </div>
-              <div className="p-6">
-                <div className="flex flex-wrap gap-3">
-                  {TRENDING_MODELS.map((model) => (
-                    <HoverCard key={model.id}>
-                      <HoverCardTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setModelId(model.id)}
-                          className="text-sm hover:bg-secondary/80 transition-colors duration-200"
-                        >
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                {TRENDING_MODELS.map((model) => (
+                  <HoverCard key={model.id}>
+                    <HoverCardTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setModelId(model.id)}
+                        className="h-auto py-2 px-3 text-xs hover:bg-primary/5 transition-colors"
+                      >
+                        <span className="truncate">
                           {model.id.split("/")[1]}
-                        </Button>
-                      </HoverCardTrigger>
-                      <HoverCardContent className="w-auto p-4">
-                        <div className="space-y-2">
-                          <p className="text-sm font-mono font-medium">
-                            {model.id}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            {model.description}
-                          </p>
-                        </div>
-                      </HoverCardContent>
-                    </HoverCard>
-                  ))}
-                </div>
+                        </span>
+                      </Button>
+                    </HoverCardTrigger>
+                    <HoverCardContent className="w-64 p-3">
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium truncate">
+                          {model.id}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {model.description}
+                        </p>
+                      </div>
+                    </HoverCardContent>
+                  </HoverCard>
+                ))}
               </div>
             </div>
 
+            <Separator className="my-6" />
+
             {/* Model Input Section */}
-            <div className="rounded-xl overflow-hidden border shadow-sm bg-card">
-              <div className="bg-gradient-to-r from-primary/20 to-primary/10 p-4 border-b">
-                <label className="text-lg font-semibold flex items-center gap-2">
-                  <Cpu className="h-5 w-5 text-primary-foreground/70" />
-                  Hugging Face Model ID
-                </label>
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <Cpu className="h-6 w-6 text-primary" />
+                <h2 className="text-xl font-semibold">Model Configuration</h2>
               </div>
-              <div className="p-6">
-                <div className="flex gap-4">
+              <div className="flex flex-col md:flex-row gap-4">
+                <div className="flex-1 relative">
                   <input
                     type="text"
                     value={modelId}
                     onChange={(e) => setModelId(e.target.value)}
-                    placeholder="e.g., microsoft/phi-2"
-                    className="flex-1 px-4 py-2 rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-ring transition-all duration-200"
+                    placeholder="Enter Hugging Face Model ID (e.g., mistralai/Mistral-7B-v0.1)"
+                    className="w-full px-4 py-3 rounded-lg border bg-background focus:ring-2 focus:ring-primary focus:border-primary transition-all placeholder:text-muted-foreground/60"
                   />
-                  <Button
-                    onClick={runAdvancedCheck}
-                    disabled={loading || !modelId}
-                    className="px-6 min-w-[140px] bg-primary hover:bg-primary/90 transition-all duration-200"
-                  >
-                    {loading ? (
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                        Analyzing...
-                      </div>
-                    ) : (
-                      "Analyze Model"
-                    )}
-                  </Button>
+                  {modelId && (
+                    <button
+                      onClick={() => setModelId("")}
+                      className="absolute right-3 top-3 p-1 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  )}
                 </div>
+                <Button
+                  onClick={runAdvancedCheck}
+                  disabled={loading || !modelId}
+                  size="lg"
+                  className="px-8 py-3 gap-2 transition-all"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Analyzing...
+                    </>
+                  ) : (
+                    <>
+                      <ScanSearch className="h-4 w-4" />
+                      Analyze Model
+                    </>
+                  )}
+                </Button>
               </div>
             </div>
 
-            {/* Quantization Results */}
+            {/* Results Section */}
             {analysis && (
-              <div className="space-y-6">
-                <h3 className="text-xl font-semibold flex items-center gap-2">
-                  <Layers className="h-5 w-5 text-muted-foreground" />
-                  Quantization Options
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {Object.entries(analysis.quantizationResults).map(
-                    ([level, result]) => (
-                      <Card
-                        key={level}
-                        className={cn(
-                          "overflow-hidden transition-all hover:shadow-md",
-                          result.runType === "Won't run" && "opacity-50",
-                        )}
-                      >
-                        <div
-                          className={cn(
-                            "p-4 border-b",
-                            result.runType === "Won't run"
-                              ? "bg-destructive/20"
-                              : "bg-success/20",
-                          )}
-                        >
-                          <div className="flex justify-between items-center">
-                            <Tooltip>
-                              <TooltipTrigger className="flex items-center gap-1.5 group">
-                                <h3
-                                  className={cn(
-                                    "text-lg font-semibold",
-                                    result.runType === "Won't run" &&
-                                      "text-destructive",
-                                  )}
-                                >
-                                  {level}
-                                </h3>
-                                <HelpCircle
-                                  className={cn(
-                                    "h-4 w-4 transition-colors",
-                                    result.runType === "Won't run"
-                                      ? "text-destructive group-hover:text-destructive/80"
-                                      : "text-success group-hover:text-success/80",
-                                  )}
-                                />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p className="max-w-xs">
-                                  Quantization level:{" "}
-                                  {
-                                    QUANTIZATION_BPWS[
-                                      level as keyof typeof QUANTIZATION_BPWS
-                                    ]
-                                  }{" "}
-                                  bits per weight. Lower values use less memory
-                                  but may reduce model quality.
-                                </p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </div>
-                        </div>
-                        <div className="p-4 bg-background space-y-3 text-sm">
-                          <div className="flex justify-between">
-                            <Tooltip>
-                              <TooltipTrigger className="flex items-center gap-1.5 group">
-                                <span className="text-muted-foreground group-hover:text-foreground">
-                                  Run Type:
-                                </span>
-                                <HelpCircle className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>
-                                  Indicates whether the model can run on your
-                                  system and how
-                                </p>
-                              </TooltipContent>
-                            </Tooltip>
-                            <span
-                              className={cn(
-                                result.runType === "Won't run" &&
-                                  "text-destructive",
-                              )}
-                            >
-                              {result.runType}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <Tooltip>
-                              <TooltipTrigger className="flex items-center gap-1.5 group">
-                                <span className="text-muted-foreground group-hover:text-foreground">
-                                  Memory Required:
-                                </span>
-                                <HelpCircle className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Total RAM/VRAM needed to run the model</p>
-                              </TooltipContent>
-                            </Tooltip>
-                            <span>
-                              {result.memoryRequired?.toFixed(1) ?? "N/A"} GB
-                            </span>
-                          </div>
-                          {result.tokensPerSecond != null && (
-                            <div className="flex justify-between">
-                              <Tooltip>
-                                <TooltipTrigger className="flex items-center gap-1.5 group">
-                                  <span className="text-muted-foreground group-hover:text-foreground">
-                                    Speed:
-                                  </span>
-                                  <HelpCircle className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>
-                                    Estimated text generation speed in tokens
-                                    per second
-                                  </p>
-                                </TooltipContent>
-                              </Tooltip>
-                              <span>
-                                {formatTokensPerSecond(result.tokensPerSecond)}
-                              </span>
-                            </div>
-                          )}
-                          {result.maxContext != null && (
-                            <div className="flex justify-between">
-                              <Tooltip>
-                                <TooltipTrigger className="flex items-center gap-1.5 group">
-                                  <span className="text-muted-foreground group-hover:text-foreground">
-                                    Max Context:
-                                  </span>
-                                  <HelpCircle className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>
-                                    Maximum number of tokens the model can
-                                    process at once
-                                  </p>
-                                </TooltipContent>
-                              </Tooltip>
-                              <span>
-                                {result.maxContext.toLocaleString()} tokens
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </Card>
-                    ),
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Error Message */}
-            {error && (
-              <div className="rounded-xl overflow-hidden shadow-sm">
-                <div className="bg-destructive/20 p-4">
-                  <p className="font-medium text-destructive">
-                    Error analyzing model:
-                  </p>
-                  <p className="mt-2">{error}</p>
-                  {error.includes("restricted") && (
-                    <p className="mt-2">
-                      Please visit{" "}
-                      <a
-                        href={`https://huggingface.co/${modelId}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline"
-                      >
-                        the model page on Hugging Face
-                      </a>{" "}
-                      to request access.
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Analysis Details */}
-            {analysis && analysis.systemSpecs && (
               <div className="space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Separator className="my-8" />
+
+                {/* Quantization Options */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <Layers className="h-6 w-6 text-primary" />
+                    <h2 className="text-xl font-semibold">
+                      Quantization Levels
+                    </h2>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {Object.entries(analysis.quantizationResults).map(
+                      ([level, result]) => (
+                        <QuantizationCard
+                          key={level}
+                          level={level}
+                          result={result}
+                        />
+                      ),
+                    )}
+                  </div>
+                </div>
+
+                {/* System & Model Info */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* System Specs */}
-                  <Card className="shadow-sm">
-                    <div className="bg-accent/20 p-4 border-b">
-                      <h3 className="text-lg font-semibold flex items-center gap-2">
-                        <Cpu className="h-5 w-5" />
-                        System Specifications
-                      </h3>
-                    </div>
-                    <div className="p-4 bg-background space-y-3">
+                  <Card>
+                    <CardContent className="p-6 space-y-4">
                       <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-2 min-w-[6rem]">
-                          <MemoryStick className="h-4 w-4 text-muted-foreground" />
-                          <Tooltip>
-                            <TooltipTrigger className="flex items-center gap-1.5 group">
-                              <span className="text-sm">Total RAM</span>
-                              <HelpCircle className="h-3 w-3 text-muted-foreground group-hover:text-foreground transition-colors" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Total system memory available</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </div>
-                        <span className="font-mono text-sm">
-                          {analysis.systemSpecs.totalRam} GB
-                        </span>
+                        <MemoryStick className="h-6 w-6 text-primary" />
+                        <h3 className="text-lg font-semibold">System Specs</h3>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-2 min-w-[6rem]">
-                          <CircuitBoard className="h-4 w-4 text-muted-foreground" />
-                          <Tooltip>
-                            <TooltipTrigger className="flex items-center gap-1.5 group">
-                              <span className="text-sm">Bandwidth</span>
-                              <HelpCircle className="h-3 w-3 text-muted-foreground group-hover:text-foreground transition-colors" />
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>GPU memory bandwidth in GB/s</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </div>
-                        <span className="font-mono text-sm">
-                          {analysis.systemSpecs.gpuBandwidth} GB/s
-                        </span>
+                      <div className="grid grid-cols-2 gap-4">
+                        <SpecItem
+                          icon={<MemoryStick className="h-4 w-4" />}
+                          label="Total RAM"
+                          value={`${analysis.systemSpecs.totalRam} GB`}
+                        />
+                        <SpecItem
+                          icon={<CircuitBoard className="h-4 w-4" />}
+                          label="GPU Bandwidth"
+                          value={`${analysis.systemSpecs.gpuBandwidth} GB/s`}
+                        />
+                        <SpecItem
+                          icon={<HardDrive className="h-4 w-4" />}
+                          label="VRAM per GPU"
+                          value={`${analysis.systemSpecs.vramPerGpu} GB`}
+                        />
+                        <SpecItem
+                          icon={<Layers className="h-4 w-4" />}
+                          label="GPU Count"
+                          value={analysis.systemSpecs.numGpus}
+                        />
                       </div>
-                      <div className="grid gap-3">
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center gap-2 min-w-[6rem]">
-                            <MemoryStick className="h-4 w-4 text-muted-foreground" />
-                            <Tooltip>
-                              <TooltipTrigger className="flex items-center gap-1.5 group">
-                                <span className="text-sm">VRAM</span>
-                                <HelpCircle className="h-3 w-3 text-muted-foreground group-hover:text-foreground transition-colors" />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Video memory per GPU</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </div>
-                          <span className="font-mono text-sm">
-                            {analysis.systemSpecs.vramPerGpu} GB
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center gap-2 min-w-[6rem]">
-                            <Layers className="h-4 w-4 text-muted-foreground" />
-                            <Tooltip>
-                              <TooltipTrigger className="flex items-center gap-1.5 group">
-                                <span className="text-sm">GPUs</span>
-                                <HelpCircle className="h-3 w-3 text-muted-foreground group-hover:text-foreground transition-colors" />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Number of graphics cards installed</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </div>
-                          <span className="font-mono text-sm">
-                            {analysis.systemSpecs.numGpus}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
+                    </CardContent>
                   </Card>
 
-                  {/* Model Information */}
-                  <Card className="shadow-sm">
-                    <div className="bg-accent/20 p-4 border-b">
-                      <h3 className="text-lg font-semibold">
-                        Model Information
-                      </h3>
-                    </div>
-                    <div className="p-4 bg-background space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span>Model ID:</span>
-                        <span className="font-mono text-sm">{modelId}</span>
+                  {/* Model Details */}
+                  <Card>
+                    <CardContent className="p-6 space-y-4">
+                      <div className="flex items-center gap-3">
+                        <BrainCircuit className="h-6 w-6 text-primary" />
+                        <h3 className="text-lg font-semibold">Model Details</h3>
                       </div>
-                      <div className="flex justify-between items-center">
-                        <span>Parameters:</span>
-                        <span>{(analysis.modelParams / 1e9).toFixed(3)}B</span>
+                      <div className="space-y-3">
+                        <SpecItem
+                          label="Model ID"
+                          value={modelId}
+                          className="font-mono text-sm"
+                        />
+                        <SpecItem
+                          label="Parameters"
+                          value={`${(analysis.modelParams / 1e9).toFixed(1)}B`}
+                        />
+                        {analysis.modelConfig?.architecture && (
+                          <SpecItem
+                            label="Architecture"
+                            value={analysis.modelConfig.architecture}
+                          />
+                        )}
+                        {analysis.modelConfig?.contextLength && (
+                          <SpecItem
+                            label="Context Window"
+                            value={`${analysis.modelConfig.contextLength.toLocaleString()} tokens`}
+                          />
+                        )}
                       </div>
-                    </div>
+                    </CardContent>
                   </Card>
                 </div>
 
-                {/* Model Summary Card */}
+                {/* Model Description */}
                 {analysis.modelSummary?.description && (
-                  <div className="rounded-xl overflow-hidden shadow-sm">
-                    <div className="bg-muted p-4 border-b flex items-center gap-2">
-                      <InfoIcon className="h-5 w-5" />
-                      <h3 className="text-lg font-semibold">
-                        Model Description
-                      </h3>
-                    </div>
-                    <div className="p-4 bg-background">
+                  <Card>
+                    <CardContent className="p-6 space-y-4">
+                      <div className="flex items-center gap-3">
+                        <InfoIcon className="h-6 w-6 text-primary" />
+                        <h3 className="text-lg font-semibold">Description</h3>
+                      </div>
                       <Collapsible
                         open={isExpanded}
                         onOpenChange={setIsExpanded}
-                        className="space-y-2"
+                        className="prose prose-sm dark:prose-invert max-w-none"
                       >
-                        <div className="text-sm text-muted-foreground">
-                          {(() => {
-                            const cleanDescription = cleanModelDescription(
+                        <div
+                          dangerouslySetInnerHTML={{
+                            __html: cleanModelDescription(
                               analysis.modelSummary.description,
-                            );
-                            const shouldTruncate =
-                              cleanDescription.length > 300;
-                            return (
-                              <>
-                                <div
-                                  className="prose prose-sm dark:prose-invert max-w-none [&_ul]:my-1 [&_li]:my-0"
-                                  dangerouslySetInnerHTML={{
-                                    __html:
-                                      shouldTruncate && !isExpanded
-                                        ? `${cleanDescription.slice(0, 300)}...`
-                                        : cleanDescription,
-                                  }}
-                                />
-                                {shouldTruncate && (
-                                  <CollapsibleTrigger className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors mt-2">
-                                    {isExpanded ? (
-                                      <>
-                                        <ChevronUpIcon className="h-4 w-4" />
-                                        Show less
-                                      </>
-                                    ) : (
-                                      <>
-                                        <ChevronDownIcon className="h-4 w-4" />
-                                        Show more
-                                      </>
-                                    )}
-                                  </CollapsibleTrigger>
-                                )}
-                              </>
-                            );
-                          })()}
-                        </div>
+                            ),
+                          }}
+                          className={cn(
+                            "overflow-hidden transition-all",
+                            !isExpanded && "max-h-[200px] mask-gradient-bottom",
+                          )}
+                        />
+                        <CollapsibleTrigger className="w-full pt-4 flex items-center justify-center gap-2 text-primary hover:text-primary/80 transition-colors">
+                          {isExpanded ? (
+                            <>
+                              <ChevronUpIcon className="h-4 w-4" />
+                              Show Less
+                            </>
+                          ) : (
+                            <>
+                              <ChevronDownIcon className="h-4 w-4" />
+                              Show More
+                            </>
+                          )}
+                        </CollapsibleTrigger>
                       </Collapsible>
-                    </div>
-                  </div>
-                )}
-
-                {/* Model Config Card */}
-                {analysis?.modelConfig && (
-                  <Card className="shadow-sm">
-                    <div className="bg-accent/20 p-4 border-b">
-                      <h3 className="text-lg font-semibold">
-                        Model Configuration
-                      </h3>
-                    </div>
-                    <div className="p-4 bg-background space-y-3">
-                      <div className="flex justify-between">
-                        <span>Architecture:</span>
-                        <span>
-                          {analysis.modelConfig?.architecture ?? "N/A"}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Context Length:</span>
-                        <span>
-                          {analysis.modelConfig?.contextLength
-                            ? analysis.modelConfig.contextLength.toLocaleString()
-                            : "N/A"}{" "}
-                          tokens
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Parameter Size:</span>
-                        <span>
-                          {analysis.modelConfig?.parameterSize ?? "N/A"}
-                        </span>
-                      </div>
-                    </div>
+                    </CardContent>
                   </Card>
                 )}
               </div>
+            )}
+
+            {/* Error Handling */}
+            {error && (
+              <Card className="border-destructive">
+                <CardContent className="p-6 bg-destructive/5 flex items-start gap-4">
+                  <AlertCircle className="h-5 w-5 text-destructive mt-0.5" />
+                  <div className="space-y-2">
+                    <h3 className="font-semibold text-destructive">
+                      Analysis Failed
+                    </h3>
+                    <p className="text-sm">{error}</p>
+                    {error.includes("restricted") && (
+                      <Button
+                        variant="link"
+                        size="sm"
+                        className="px-0 text-destructive h-auto"
+                        asChild
+                      >
+                        <a
+                          href={`https://huggingface.co/${modelId}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Request Access on Hugging Face →
+                        </a>
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             )}
           </CardContent>
         </Card>
       </section>
     </TooltipProvider>
+  );
+}
+
+function SpecItem({
+  icon,
+  label,
+  value,
+  className,
+}: {
+  icon?: React.ReactNode;
+  label: string;
+  value: string | number;
+  className?: string;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4 p-2 rounded-lg bg-muted/10">
+      <div className="flex items-center gap-2">
+        {icon && <span className="text-muted-foreground">{icon}</span>}
+        <span className="text-sm">{label}</span>
+      </div>
+      <span className={cn("font-medium text-sm", className)}>{value}</span>
+    </div>
   );
 }

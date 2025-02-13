@@ -4,97 +4,160 @@
 
 @layer base {
   :root {
-    /* Modern Cyberpunk Light Theme */
-    --background: 0 0% 98%; /* Light ivory background */
-    --foreground: 240 5% 8%; /* Charcoal text for contrast */
+    /* Modern Light Theme */
+    --background: 0 0% 100%; /* Pure white background */
+    --foreground: 222.2 84% 4.9%; /* Deep blue-gray for text */
 
-    --card: 0 0% 100%; /* White card background */
-    --card-foreground: 240 5% 8%; /* Charcoal text on cards */
+    --card: 0 0% 100%; /* White cards */
+    --card-foreground: 222.2 84% 4.9%;
 
-    --popover: 0 0% 100%; /* White popover background */
-    --popover-foreground: 240 5% 8%; /* Charcoal text on popovers */
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
 
-    /* Primary & Accents */
-    --primary: 266 70% 55%; /* Electric Purple (#8047E5) */
-    --primary-foreground: 0 0% 98%; /* Off-white text on primary */
+    /* Primary - Vibrant Blue */
+    --primary: 221.2 83.2% 53.3%; /* #3B82F6 */
+    --primary-foreground: 210 40% 98%;
 
-    --secondary: 240 5% 90%; /* Light gray for secondary elements */
-    --secondary-foreground: 240 5% 8%; /* Charcoal text on secondary */
+    /* Secondary - Soft Gray */
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
 
-    --muted: 240 5% 85%; /* Muted light gray */
-    --muted-foreground: 240 5% 30%; /* Darker gray for muted text */
+    /* Muted Colors */
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
 
-    /* Accent Colors */
-    --accent: 327 100% 71%; /* Neon Pink (#FF6EC7) */
-    --accent-foreground: 0 0% 98%; /* Off-white text on accent */
+    /* Accent - Indigo */
+    --accent: 217.2 91.2% 59.8%; /* #4F46E5 */
+    --accent-foreground: 210 40% 98%;
 
-    /* Destructive Actions */
-    --destructive: 0 84% 60%; /* Bright red for errors */
-    --destructive-foreground: 0 0% 98%; /* Off-white text on destructive */
+    /* Destructive */
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
 
-    /* Borders & Inputs */
-    --border: 240 5% 85%; /* Light gray borders */
-    --input: 240 5% 85%; /* Light gray inputs */
-    --ring: 266 70% 55%; /* Electric Purple focus ring */
+    /* Borders & Interactive Elements */
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
 
     /* Gradients */
-    --gradient-start: 327 100% 71%; /* Neon Pink gradient start */
-    --gradient-end: 170 100% 65%; /* Neon Aqua gradient end */
+    --gradient-start: 221.2 83.2% 53.3%; /* Blue gradient start */
+    --gradient-end: 217.2 91.2% 59.8%; /* Indigo gradient end */
 
-    --radius: 0.75rem; /* Border radius */
+    --radius: 0.75rem;
   }
 
   .dark {
-    /* Modern Cyberpunk Dark Theme */
-    --background: 240 5% 8%; /* Charcoal background */
-    --foreground: 0 0% 98%; /* Off-white text */
+    /* Modern Dark Theme */
+    --background: 222.2 84% 4.9%; /* Rich dark background */
+    --foreground: 210 40% 98%; /* Crisp white text */
 
-    --card: 240 5% 12%; /* Darker charcoal for cards */
-    --card-foreground: 0 0% 98%; /* Off-white text on cards */
+    --card: 222.2 84% 6.9%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 240 5% 12%; /* Darker charcoal for popovers */
-    --popover-foreground: 0 0% 98%; /* Off-white text on popovers */
+    --popover: 222.2 84% 6.9%;
+    --popover-foreground: 210 40% 98%;
 
-    /* Primary & Accents */
-    --primary: 266 70% 55%; /* Electric Purple (#8047E5) */
-    --primary-foreground: 0 0% 98%; /* Off-white text on primary */
+    /* Primary - Electric Blue */
+    --primary: 217.2 91.2% 59.8%; /* #4F46E5 */
+    --primary-foreground: 222.2 47.4% 11.2%;
 
-    --secondary: 240 5% 20%; /* Dark gray for secondary elements */
-    --secondary-foreground: 0 0% 98%; /* Off-white text on secondary */
+    /* Secondary */
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 240 5% 15%; /* Muted dark gray */
-    --muted-foreground: 240 5% 70%; /* Light gray for muted text */
+    /* Muted Colors */
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
 
-    /* Accent Colors */
-    --accent: 327 100% 71%; /* Neon Pink (#FF6EC7) */
-    --accent-foreground: 240 5% 8%; /* Charcoal text on accent */
+    /* Accent - Vibrant Purple */
+    --accent: 224.3 76.3% 48%; /* #6366F1 */
+    --accent-foreground: 210 40% 98%;
 
-    /* Destructive Actions */
-    --destructive: 0 84% 60%; /* Bright red for errors */
-    --destructive-foreground: 0 0% 98%; /* Off-white text on destructive */
+    /* Destructive */
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
 
-    /* Borders & Inputs */
-    --border: 240 5% 20%; /* Dark gray borders */
-    --input: 240 5% 20%; /* Dark gray inputs */
-    --ring: 266 70% 55%; /* Electric Purple focus ring */
+    /* Borders & Interactive Elements */
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 224.3 76.3% 48%;
 
     /* Gradients */
-    --gradient-start: 266 70% 45%; /* Muted purple gradient start */
-    --gradient-end: 170 100% 50%; /* Teal gradient end */
+    --gradient-start: 224.3 76.3% 48%; /* Purple gradient start */
+    --gradient-end: 217.2 91.2% 59.8%; /* Indigo gradient end */
   }
 }
 
-body {
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
-  font-family: "Inter", sans-serif;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1;
+  }
 }
 
-/* Gradient Utility */
-.bg-gradient {
-  background: linear-gradient(
-    to right,
-    hsl(var(--gradient-start)),
-    hsl(var(--gradient-end))
-  );
+@layer utilities {
+  /* Enhanced Gradient Utilities */
+  .bg-gradient {
+    @apply bg-gradient-to-r from-[hsl(var(--gradient-start))] to-[hsl(var(--gradient-end))] transition-all duration-500;
+  }
+
+  .bg-gradient-subtle {
+    @apply bg-gradient-to-r from-background/50 via-[hsl(var(--gradient-start))/5] to-background/50;
+  }
+
+  /* Glass Effect */
+  .glass {
+    @apply bg-background/80 backdrop-blur-lg border border-border/50;
+  }
+
+  /* Enhanced Card Hover Effect */
+  .hover-card-effect {
+    @apply transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5;
+  }
+
+  /* Text Gradient */
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-[hsl(var(--gradient-start))] to-[hsl(var(--gradient-end))];
+  }
+
+  /* Animated Background */
+  .animated-gradient {
+    background: linear-gradient(
+      -45deg,
+      hsl(var(--gradient-start)),
+      hsl(var(--gradient-end)),
+      hsl(var(--primary)),
+      hsl(var(--accent))
+    );
+    background-size: 400% 400%;
+    animation: gradient 15s ease infinite;
+  }
+
+  @keyframes gradient {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+}
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1;
+  }
 }
