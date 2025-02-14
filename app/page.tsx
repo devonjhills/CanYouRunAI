@@ -103,7 +103,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen">
-      <section className="py-12 px-6 bg-gradient-to-b from-background to-muted/30">
+      <section className="py-12 px-6">
         <div className="max-w-6xl mx-auto space-y-12">
           <LLMCompatibilityChecker
             onSubmit={(info: SystemInfo, timestamp: string) => {

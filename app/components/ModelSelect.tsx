@@ -28,7 +28,7 @@ export function ModelSelect({
   onModelSelect,
   placeholder = "Select model to compare",
   className = "w-[280px]",
-  triggerClassName = "border-2 focus:ring-2 focus:ring-ring",
+  triggerClassName = "", // Remove default styling here
 }: ModelSelectProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
@@ -36,6 +36,18 @@ export function ModelSelect({
   const filteredModels = models.filter((model) =>
     model.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
+
+  // Combine default and custom trigger styles.  This is important!
+  const combinedTriggerClassName = `
+    border-2
+    border-primary  // Use a more prominent border color
+    focus:ring-2
+    focus:ring-primary/50 // Use primary color for the focus ring
+    focus:border-primary   // Keep focus border as primary
+    rounded-md            // Ensure rounded corners
+    w-full               // Full width within the container
+    ${triggerClassName}   // Apply any custom styles from props
+  `;
 
   return (
     <div className={className}>
@@ -45,10 +57,12 @@ export function ModelSelect({
         open={isOpen}
         onOpenChange={setIsOpen}
       >
-        <SelectTrigger className={triggerClassName}>
+        <SelectTrigger className={combinedTriggerClassName}>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="z-50">
+          {" "}
+          {/* Add z-index for proper layering */}
           <SelectGroup>
             <SelectLabel>Available Models</SelectLabel>
             <div className="relative">

@@ -4,87 +4,66 @@
 
 @layer base {
   :root {
-    /* Modern Light Theme */
-    --background: 0 0% 100%; /* Pure white background */
-    --foreground: 222.2 84% 4.9%; /* Deep blue-gray for text */
+    /* Minimalist Monochrome+ - Light Theme */
+    --background: 0 0% 99%; /* Almost white */
+    --foreground: 0 0% 10%; /* Very dark gray */
 
-    --card: 0 0% 100%; /* White cards */
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 0 0% 10%;
 
-    /* Primary - Vibrant Blue */
-    --primary: 221.2 83.2% 53.3%; /* #3B82F6 */
-    --primary-foreground: 210 40% 98%;
+    --primary: 260 80% 60%; /* Vibrant purple */
+    --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Soft Gray */
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 0 0% 90%; /* Light gray */
+    --secondary-foreground: 0 0% 10%;
 
-    /* Muted Colors */
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 0 0% 90%;
+    --muted-foreground: 0 0% 40%;
 
-    /* Accent - Indigo */
-    --accent: 217.2 91.2% 59.8%; /* #4F46E5 */
-    --accent-foreground: 210 40% 98%;
+    --accent: 0 0% 50%; /* Medium gray */
+    --accent-foreground: 0 0% 100%;
 
-    /* Destructive */
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 85% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    /* Borders & Interactive Elements */
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-
-    /* Gradients */
-    --gradient-start: 221.2 83.2% 53.3%; /* Blue gradient start */
-    --gradient-end: 217.2 91.2% 59.8%; /* Indigo gradient end */
+    --border: 0 0% 80%;
+    --input: 0 0% 90%;
+    --ring: 260 80% 60%;
 
     --radius: 0.75rem;
   }
-
   .dark {
-    /* Modern Dark Theme */
-    --background: 222.2 84% 4.9%; /* Rich dark background */
-    --foreground: 210 40% 98%; /* Crisp white text */
+    /* Minimalist Monochrome+ - Dark Theme */
+    --background: 0 0% 10%; /* Very dark gray */
+    --foreground: 0 0% 99%; /* Almost white */
 
-    --card: 222.2 84% 6.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 0 0% 15%;
+    --card-foreground: 0 0% 99%;
 
-    --popover: 222.2 84% 6.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 15%;
+    --popover-foreground: 0 0% 99%;
 
-    /* Primary - Electric Blue */
-    --primary: 217.2 91.2% 59.8%; /* #4F46E5 */
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 260 90% 70%; /* Even brighter purple */
+    --primary-foreground: 0 0% 10%;
 
-    /* Secondary */
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 0 0% 20%; /* Dark gray */
+    --secondary-foreground: 0 0% 99%;
 
-    /* Muted Colors */
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 0 0% 20%;
+    --muted-foreground: 0 0% 70%;
 
-    /* Accent - Vibrant Purple */
-    --accent: 224.3 76.3% 48%; /* #6366F1 */
-    --accent-foreground: 210 40% 98%;
+    --accent: 0 0% 60%; /* Lighter gray */
+    --accent-foreground: 0 0% 10%;
 
-    /* Destructive */
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 100%;
 
-    /* Borders & Interactive Elements */
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
-
-    /* Gradients */
-    --gradient-start: 224.3 76.3% 48%; /* Purple gradient start */
-    --gradient-end: 217.2 91.2% 59.8%; /* Indigo gradient end */
+    --border: 0 0% 30%;
+    --input: 0 0% 20%;
+    --ring: 260 90% 70%;
   }
 }
 
@@ -101,15 +80,6 @@
 }
 
 @layer utilities {
-  /* Enhanced Gradient Utilities */
-  .bg-gradient {
-    @apply bg-gradient-to-r from-[hsl(var(--gradient-start))] to-[hsl(var(--gradient-end))] transition-all duration-500;
-  }
-
-  .bg-gradient-subtle {
-    @apply bg-gradient-to-r from-background/50 via-[hsl(var(--gradient-start))/5] to-background/50;
-  }
-
   /* Glass Effect */
   .glass {
     @apply bg-background/80 backdrop-blur-lg border border-border/50;
@@ -118,36 +88,6 @@
   /* Enhanced Card Hover Effect */
   .hover-card-effect {
     @apply transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5;
-  }
-
-  /* Text Gradient */
-  .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-[hsl(var(--gradient-start))] to-[hsl(var(--gradient-end))];
-  }
-
-  /* Animated Background */
-  .animated-gradient {
-    background: linear-gradient(
-      -45deg,
-      hsl(var(--gradient-start)),
-      hsl(var(--gradient-end)),
-      hsl(var(--primary)),
-      hsl(var(--accent))
-    );
-    background-size: 400% 400%;
-    animation: gradient 15s ease infinite;
-  }
-
-  @keyframes gradient {
-    0% {
-      background-position: 0% 50%;
-    }
-    50% {
-      background-position: 100% 50%;
-    }
-    100% {
-      background-position: 0% 50%;
-    }
   }
 }
 @layer base {

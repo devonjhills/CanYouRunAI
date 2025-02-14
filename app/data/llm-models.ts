@@ -17,49 +17,49 @@ export interface LLMModel {
 }
 
 export const llmModels: LLMModel[] = [
-  // -- From the first listing --
+  // -- Corrected and expanded list --
   {
     id: "llama2-7b",
     name: "Llama 2 (7B)",
     description: "Meta's 7B parameter model, good for basic tasks",
     requirements: {
-      RAM: "16.0 GB",
-      GPU: "NVIDIA GTX 1060 6GB or better",
-      VRAM: "6.0 GB",
-      Storage: "15.0 GB",
+      RAM: "16 GB",
+      GPU: "NVIDIA GTX 1070 or better",
+      VRAM: "8 GB",
+      Storage: "20 GB",
     },
-    requiredRAM: "16.0 GB",
-    requiredVRAM: "6.0 GB",
-    recommendedGPU: "NVIDIA GTX 1060 6GB or better",
+    requiredRAM: "16 GB",
+    requiredVRAM: "8 GB",
+    recommendedGPU: "NVIDIA GTX 1070 or better",
   },
   {
     id: "llama2-13b",
     name: "Llama 2 (13B)",
     description: "Meta's 13B parameter model, better reasoning capabilities",
     requirements: {
-      RAM: "32.0 GB",
-      GPU: "NVIDIA RTX 2060 8GB or better",
-      VRAM: "8.0 GB",
-      Storage: "15.0 GB",
+      RAM: "32 GB",
+      GPU: "NVIDIA RTX 2070 or better",
+      VRAM: "12 GB",
+      Storage: "20 GB",
     },
-    requiredRAM: "32.0 GB",
-    requiredVRAM: "8.0 GB",
-    recommendedGPU: "NVIDIA RTX 2060 8GB or better",
+    requiredRAM: "32 GB",
+    requiredVRAM: "12 GB",
+    recommendedGPU: "NVIDIA RTX 2070 or better",
   },
   {
     id: "llama2-70b",
     name: "Llama 2 (70B)",
     description:
-      "Meta's largest model, best performance but resource intensive",
+      "Meta's largest Llama 2 model, best performance but resource intensive",
     requirements: {
-      RAM: "64.0 GB",
-      GPU: "NVIDIA RTX 3080 or better",
-      VRAM: "16.0 GB",
-      Storage: "15.0 GB",
+      RAM: "64 GB",
+      GPU: "NVIDIA RTX 3090 or better",
+      VRAM: "24 GB",
+      Storage: "20 GB",
     },
-    requiredRAM: "64.0 GB",
-    requiredVRAM: "16.0 GB",
-    recommendedGPU: "NVIDIA RTX 3080 or better",
+    requiredRAM: "64 GB",
+    requiredVRAM: "24 GB",
+    recommendedGPU: "NVIDIA RTX 3090 or better",
   },
   {
     id: "mixtral-8x7b",
@@ -67,204 +67,218 @@ export const llmModels: LLMModel[] = [
     description:
       "Mistral's mixture of experts model, high performance for diverse tasks",
     requirements: {
-      RAM: "48.0 GB",
-      GPU: "NVIDIA RTX 3070 or better",
-      VRAM: "12.0 GB",
-      Storage: "15.0 GB",
+      RAM: "48 GB",
+      GPU: "NVIDIA RTX 3080 or better",
+      VRAM: "24 GB",
+      Storage: "20 GB",
     },
-    requiredRAM: "48.0 GB",
-    requiredVRAM: "12.0 GB",
-    recommendedGPU: "NVIDIA RTX 3070 or better",
+    requiredRAM: "48 GB",
+    requiredVRAM: "24 GB",
+    recommendedGPU: "NVIDIA RTX 3080 or better",
   },
-  {
-    id: "llama3-1-405b",
-    name: "Llama 3.1 (405B)",
-    description:
-      "Meta's most advanced open-source model, excels in complex tasks with multilingual support and long context capabilities.",
-    requirements: {
-      RAM: "128.0 GB",
-      GPU: "NVIDIA A100 (80GB) or better",
-      VRAM: "80.0 GB",
-      Storage: "15.0 GB",
-    },
-    requiredRAM: "128.0 GB",
-    requiredVRAM: "80.0 GB",
-    recommendedGPU: "NVIDIA A100 (80GB) or better",
-  },
-  {
-    id: "bloom-176b",
-    name: "BLOOM (176B)",
-    description:
-      "BigScience's multilingual model supporting natural and programming languages, focused on open access.",
-    requirements: {
-      RAM: "128.0 GB or more",
-      GPU: "NVIDIA A100 (80GB) or equivalent cluster setup.",
-      VRAM: "80.0 GB per GPU node.",
-      Storage: "15.0 GB",
-    },
-    requiredRAM: "128.0 GB or more",
-    requiredVRAM: "80.0 GB per GPU node.",
-    recommendedGPU: "NVIDIA A100 (80GB) or equivalent cluster setup.",
-  },
-  {
-    id: "falcon-180b",
-    name: "Falcon (180B)",
-    description:
-      "Technology Innovation Institute's high-performing multilingual model, excelling in reasoning and coding tasks.",
-    requirements: {
-      RAM: "256.0 GB recommended.",
-      GPU: "NVIDIA H100/A100 GPUs with at least four nodes in a distributed setup.",
-      VRAM: ">80.0 GB per node for optimal performance.",
-      Storage: "15.0 GB",
-    },
-    requiredRAM: "256.0 GB recommended.",
-    requiredVRAM: ">80.0 GB per node for optimal performance.",
-    recommendedGPU:
-      "NVIDIA H100/A100 GPUs with at least four nodes in a distributed setup.",
-  },
-
-  // -- From the second listing --
   {
     id: "llama3-8b",
-    name: "Llama 3.1 (8B)",
-    description: "Meta's efficient 8B parameter model with 128k context window",
+    name: "Llama 3 (8B)",
+    description:
+      "Meta's efficient 8B parameter model with improved performance",
     requirements: {
-      RAM: "32.0 GB",
+      RAM: "32 GB",
       GPU: "NVIDIA RTX 3060 or better",
-      VRAM: "10.0 GB",
-      Storage: "15.0 GB",
+      VRAM: "16 GB",
+      Storage: "20 GB",
     },
-    requiredRAM: "32.0 GB",
-    requiredVRAM: "10.0 GB",
+    requiredRAM: "32 GB",
+    requiredVRAM: "16 GB",
     recommendedGPU: "NVIDIA RTX 3060 or better",
   },
   {
     id: "llama3-70b",
-    name: "Llama 3.1 (70B)",
-    description: "Meta's flagship model with enhanced reasoning capabilities",
+    name: "Llama 3 (70B)",
+    description: "Meta's flagship Llama 3 model with enhanced reasoning",
     requirements: {
-      RAM: "64.0 GB",
+      RAM: "128 GB",
       GPU: "NVIDIA RTX 4090 or better",
-      VRAM: "24.0 GB",
-      Storage: "15.0 GB",
+      VRAM: "48 GB",
+      Storage: "20 GB",
     },
-    requiredRAM: "64.0 GB",
-    requiredVRAM: "24.0 GB",
+    requiredRAM: "128 GB",
+    requiredVRAM: "48 GB",
     recommendedGPU: "NVIDIA RTX 4090 or better",
   },
   {
     id: "deepseek-r1-70b",
-    name: "DeepSeek-R1-Distill-Llama-70B",
+    name: "DeepSeek-R1-Distill-70B",
     description:
-      "Top-ranked model for complex reasoning tasks (12GB VRAM optimized)",
+      "Top-ranked model, optimized for fast inference and complex tasks",
     requirements: {
-      RAM: "128.0 GB",
-      GPU: "NVIDIA RTX 3090 (24GB) or better",
-      VRAM: "12.0 GB",
-      Storage: "15.0 GB",
+      RAM: "128 GB",
+      GPU: "NVIDIA RTX 4090 or better",
+      VRAM: "24 GB",
+      Storage: "20 GB",
     },
-    requiredRAM: "128.0 GB",
-    requiredVRAM: "12.0 GB",
-    recommendedGPU: "NVIDIA RTX 3090 (24GB) or better",
+    requiredRAM: "128 GB",
+    requiredVRAM: "24 GB",
+    recommendedGPU: "NVIDIA RTX 4090 or better",
   },
   {
     id: "mixtral-8x22b",
     name: "Mixtral 8x22B",
     description:
-      "State-of-the-art mixture of experts model with 176B total params",
+      "Next-gen Mistral MoE, excels in reasoning and complex workloads",
     requirements: {
-      RAM: "96.0 GB",
-      GPU: "NVIDIA RTX 4090 (24GB) or dual RTX 3090",
-      VRAM: "24.0 GB",
-      Storage: "15.0 GB",
+      RAM: "192 GB",
+      GPU: "Dual NVIDIA RTX 4090 or better",
+      VRAM: "48 GB",
+      Storage: "20 GB",
     },
-    requiredRAM: "96.0 GB",
-    requiredVRAM: "24.0 GB",
-    recommendedGPU: "NVIDIA RTX 4090 (24GB) or dual RTX 3090",
+    requiredRAM: "192 GB",
+    requiredVRAM: "48 GB",
+    recommendedGPU: "Dual NVIDIA RTX 4090 or better",
   },
   {
-    id: "phi-4",
-    name: "Phi-4",
-    description: "Microsoft's lightweight model excelling in math/logic tasks",
+    id: "phi-3-mini-4k-instruct",
+    name: "Phi-3 Mini (4K)",
+    description: "Microsoft's small, efficient model for common tasks",
     requirements: {
-      RAM: "24.0 GB",
-      GPU: "NVIDIA RTX 3060 or better",
-      VRAM: "8.0 GB",
-      Storage: "15.0 GB",
+      RAM: "16 GB",
+      GPU: "NVIDIA RTX 2060 or better",
+      VRAM: "6 GB",
+      Storage: "20 GB",
     },
-    requiredRAM: "24.0 GB",
-    requiredVRAM: "8.0 GB",
-    recommendedGPU: "NVIDIA RTX 3060 or better",
+    requiredRAM: "16 GB",
+    requiredVRAM: "6 GB",
+    recommendedGPU: "NVIDIA RTX 2060 or better",
   },
   {
     id: "qwen2-72b",
-    name: "Qwen2.5 72B",
-    description: "Alibaba's multilingual model with 131k context window",
+    name: "Qwen2-72B",
+    description: "Alibaba's powerful model with a very large context window",
     requirements: {
-      RAM: "128.0 GB",
-      GPU: "NVIDIA RTX 6000 Ada or dual RTX 4090",
-      VRAM: "48.0 GB",
-      Storage: "15.0 GB",
+      RAM: "128 GB",
+      GPU: "Dual NVIDIA RTX 4090 or NVIDIA A6000",
+      VRAM: "48 GB",
+      Storage: "20 GB",
     },
-    requiredRAM: "128.0 GB",
-    requiredVRAM: "48.0 GB",
-    recommendedGPU: "NVIDIA RTX 6000 Ada or dual RTX 4090",
+    requiredRAM: "128 GB",
+    requiredVRAM: "48 GB",
+    recommendedGPU: "Dual NVIDIA RTX 4090 or NVIDIA A6000",
   },
   {
-    id: "gemma2-9b",
-    name: "Gemma2 9B",
-    description: "Google's lightweight model with strong general performance",
+    id: "gemma-7b",
+    name: "Gemma 7B",
+    description: "Google's open model, strong performance, similar to Llama 2",
     requirements: {
-      RAM: "32.0 GB",
+      RAM: "32 GB",
       GPU: "NVIDIA RTX 2080 Ti or better",
-      VRAM: "10.0 GB",
-      Storage: "15.0 GB",
+      VRAM: "16 GB",
+      Storage: "20 GB",
     },
-    requiredRAM: "32.0 GB",
-    requiredVRAM: "10.0 GB",
+    requiredRAM: "32 GB",
+    requiredVRAM: "16 GB",
     recommendedGPU: "NVIDIA RTX 2080 Ti or better",
   },
   {
-    id: "mistral-large2",
-    name: "Mistral Large 2",
-    description: "Commercial-grade model with 128k context window",
+    id: "mistral-large",
+    name: "Mistral Large",
+    description: "Mistral's most performant model, excels in complex reasoning",
     requirements: {
-      RAM: "64.0 GB",
-      GPU: "NVIDIA RTX 4080 Super or better",
-      VRAM: "16.0 GB",
-      Storage: "15.0 GB",
+      RAM: "64 GB",
+      GPU: "NVIDIA RTX 4080 or better",
+      VRAM: "24 GB",
+      Storage: "20 GB",
     },
-    requiredRAM: "64.0 GB",
-    requiredVRAM: "16.0 GB",
-    recommendedGPU: "NVIDIA RTX 4080 Super or better",
+    requiredRAM: "64 GB",
+    requiredVRAM: "24 GB",
+    recommendedGPU: "NVIDIA RTX 4080 or better",
   },
   {
-    id: "codestral-mamba",
-    name: "Codestral-Mamba",
-    description: "Specialized coding model with 256k context window",
+    id: "codellama-70b-instruct",
+    name: "CodeLlama 70B Instruct",
+    description:
+      "Specialized coding model, excellent for code generation tasks",
     requirements: {
-      RAM: "48.0 GB",
-      GPU: "NVIDIA RTX 3080 (12GB) or better",
-      VRAM: "12.0 GB",
-      Storage: "15.0 GB",
+      RAM: "128 GB",
+      GPU: "NVIDIA RTX 4090 or better",
+      VRAM: "48 GB",
+      Storage: "20 GB",
     },
-    requiredRAM: "48.0 GB",
-    requiredVRAM: "12.0 GB",
-    recommendedGPU: "NVIDIA RTX 3080 (12GB) or better",
+    requiredRAM: "128 GB",
+    requiredVRAM: "48 GB",
+    recommendedGPU: "NVIDIA RTX 4090 or better",
   },
   {
-    id: "deepseek-v3",
-    name: "DeepSeek V3",
-    description: "High-speed inference model (10.9 tokens/sec on 24GB VRAM)",
+    id: "falcon-180b",
+    name: "Falcon 180B",
+    description:
+      "TII's largest Falcon model, for research and high-performance needs",
     requirements: {
-      RAM: "64.0 GB",
-      GPU: "NVIDIA RTX 4090 or A4000 Ada",
-      VRAM: "24.0 GB",
-      Storage: "15.0 GB",
+      RAM: "512 GB",
+      GPU: "8 x NVIDIA RTX A6000 or better",
+      VRAM: "48 GB per GPU",
+      Storage: "20 GB",
     },
-    requiredRAM: "64.0 GB",
-    requiredVRAM: "24.0 GB",
-    recommendedGPU: "NVIDIA RTX 4090 or A4000 Ada",
+    requiredRAM: "512 GB",
+    requiredVRAM: "48 GB per GPU",
+    recommendedGPU: "8 x NVIDIA RTX A6000 or better",
+  },
+  {
+    id: "claude-3-opus",
+    name: "Claude 3 Opus",
+    description:
+      "Anthropic's most intelligent model, near-human level comprehension",
+    requirements: {
+      RAM: "64 GB", // Estimated
+      GPU: "NVIDIA RTX 4090 or better", // Estimated for local inference
+      VRAM: "24 GB", // Estimated
+      Storage: "20 GB",
+    },
+    requiredRAM: "64 GB", // Estimated
+    requiredVRAM: "24 GB", // Estimated
+    recommendedGPU: "NVIDIA RTX 4090 or better", // Estimated for local inference
+  },
+  {
+    id: "gpt-4",
+    name: "GPT-4",
+    description:
+      "OpenAI's flagship multimodal model, top-tier general performance",
+    requirements: {
+      RAM: "64 GB", // Estimated for large context
+      GPU: "NVIDIA RTX 4090 or better", // Estimated for local inference
+      VRAM: "24 GB", // Estimated
+      Storage: "20 GB",
+    },
+    requiredRAM: "64 GB", // Estimated for large context
+    requiredVRAM: "24 GB", // Estimated
+    recommendedGPU: "NVIDIA RTX 4090 or better", // Estimated for local inference
+  },
+  {
+    id: "gemini-1.5-pro",
+    name: "Gemini 1.5 Pro",
+    description: "Google's Gemini Pro model with a very long context window",
+    requirements: {
+      RAM: "64 GB", // Estimated for large context
+      GPU: "NVIDIA RTX 4080 or better", // Estimated for local inference
+      VRAM: "24 GB", // Estimated
+      Storage: "20 GB",
+    },
+    requiredRAM: "64 GB", // Estimated for large context
+    requiredVRAM: "24 GB", // Estimated
+    recommendedGPU: "NVIDIA RTX 4080 or better", // Estimated for local inference
+  },
+  {
+    id: "command-r-plus",
+    name: "Command R+",
+    description:
+      "Cohere's top-performing model, excels in enterprise use cases",
+    requirements: {
+      RAM: "64 GB", // Estimated
+      GPU: "NVIDIA RTX 4080 or better", // Estimated for local inference
+      VRAM: "24 GB", // Estimated
+      Storage: "20 GB",
+    },
+    requiredRAM: "64 GB", // Estimated
+    requiredVRAM: "24 GB", // Estimated
+    recommendedGPU: "NVIDIA RTX 4080 or better", // Estimated for local inference
   },
 ];
 

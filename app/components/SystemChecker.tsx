@@ -10,7 +10,8 @@ import {
   ChevronDown,
   CheckCircle2,
   XCircle,
-} from "lucide-react";
+  Info,
+} from "lucide-react"; // Import Info icon
 import { Card } from "@/components/ui/card";
 import {
   Collapsible,
@@ -61,6 +62,7 @@ function compareRAMorVRAM(actual: string, required: string): boolean {
   return actualGB >= requiredGB;
 }
 
+// Component for individual system spec items
 const SystemSpecItem = ({
   icon,
   label,
@@ -87,6 +89,20 @@ const SystemSpecItem = ({
     </Tooltip>
   </TooltipProvider>
 );
+
+// GPU Detail Tooltip Content
+const gpuDetailTooltips: { [key: string]: string } = {
+  Bandwidth: "Memory bandwidth in GB/s. Higher is better for data transfer.",
+  "Code Name": "Internal codename of the GPU architecture.",
+  "Memory Type":
+    "Type of VRAM (e.g., GDDR6).  Newer types are generally faster.",
+  "Bus Width": "Memory bus width in bits. Wider bus means more data transfer.",
+  TDP: "Thermal Design Power in watts.  Indicates power consumption and heat output.",
+  "Process Node":
+    "Manufacturing process in nanometers (nm). Smaller is usually more efficient.",
+  "Base Clock": "Base GPU core clock speed in MHz.",
+  "Boost Clock": "Maximum GPU core clock speed in MHz.",
+};
 
 export const SystemChecker = ({
   systemInfo,
@@ -126,7 +142,7 @@ export const SystemChecker = ({
   ];
 
   return (
-    <Card className="p-6 space-y-6 backdrop-blur-sm bg-background/80">
+    <Card className="p-6 space-y-6 shadow-xl border">
       <div className="space-y-6">
         {/* Header Section */}
         <div className="flex flex-col gap-4 md:flex-row md:items-center justify-between">
@@ -143,7 +159,7 @@ export const SystemChecker = ({
           </div>
           <div className="flex flex-col gap-2 min-w-[300px]">
             <p className="text-sm text-muted-foreground">
-              Compare against model:
+              Select a model to compare against:
             </p>
             <ModelSelect
               models={models}
@@ -151,6 +167,7 @@ export const SystemChecker = ({
               onModelSelect={onModelSelect}
               placeholder="Select AI Model..."
             />
+            {/* <Button variant="outline">Select Model</Button>  Removed extra button*/}
           </div>
         </div>
 
@@ -159,30 +176,30 @@ export const SystemChecker = ({
         {/* System Specifications */}
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">Hardware Overview</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3">
             <SystemSpecItem
               icon={<MemoryStick className="w-5 h-5" />}
               label="System RAM"
               value={systemInfo?.RAM || "Not detected"}
-              tooltip="System Random Access Memory"
+              tooltip="System Random Access Memory -  Used by the CPU and operating system. More RAM is generally better for multitasking."
             />
             <SystemSpecItem
               icon={<MonitorCog className="w-5 h-5" />}
               label="GPU"
               value={systemInfo?.GPU || "Not detected"}
-              tooltip="Graphics Processing Unit"
+              tooltip="Graphics Processing Unit - Handles the computation for running the LLM.  A powerful GPU is crucial."
             />
             <SystemSpecItem
               icon={<MemoryStick className="w-5 h-5" />}
               label="VRAM"
               value={systemInfo?.VRAM || "Not detected"}
-              tooltip="Video Random Access Memory"
+              tooltip="Video Random Access Memory - Dedicated memory on the GPU.  LLMs require significant VRAM, especially for larger models."
             />
             <SystemSpecItem
               icon={<HardDrive className="w-5 h-5" />}
               label="Storage"
               value={systemInfo?.Storage || "Not detected"}
-              tooltip="Storage Capacity"
+              tooltip="Storage Capacity -  The amount of space available to store the LLM model files (which can be very large)."
             />
           </div>
 
@@ -214,9 +231,20 @@ export const SystemChecker = ({
                   }).map(
                     ([label, value]) =>
                       value && (
-                        <div key={label} className="space-y-1">
-                          <p className="text-muted-foreground text-xs">
+                        <div key={label} className="space-y-1 relative">
+                          <p className="text-muted-foreground text-xs flex items-center gap-1">
                             {label}
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Info className="w-3 h-3" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  {gpuDetailTooltips[label] ||
+                                    "No information available."}
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
                           </p>
                           <p className="font-medium">{value}</p>
                         </div>

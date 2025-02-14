@@ -121,7 +121,7 @@ function QuantizationCard({
     >
       <div
         className={cn(
-          "px-6 py-5 bg-gradient-to-r flex items-center justify-between",
+          "px-6 py-5 flex items-center justify-between",
           canRun
             ? "from-green-100/30 to-green-50/20 dark:from-green-900/10 dark:to-green-900/20"
             : "from-red-100/30 to-red-50/20 dark:from-red-900/10 dark:to-red-900/20",
@@ -272,7 +272,7 @@ export function AdvancedAnalysisSection({
       <section className="max-w-7xl mx-auto px-4 py-8">
         <Card className="overflow-hidden border shadow-xl">
           {/* Hero Section */}
-          <div className="relative bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+          <div className="relative">
             <div className="relative px-8 py-12 space-y-6 text-center">
               <div className="inline-flex items-center gap-3 px-6 py-3 bg-background rounded-full shadow-sm border">
                 <Rocket className="h-8 w-8 text-primary" />
@@ -486,7 +486,7 @@ export function AdvancedAnalysisSection({
                           }}
                           className={cn(
                             "overflow-hidden transition-all",
-                            !isExpanded && "max-h-[200px] mask-gradient-bottom",
+                            !isExpanded && "max-h-[200px]",
                           )}
                         />
                         <CollapsibleTrigger className="w-full pt-4 flex items-center justify-center gap-2 text-primary hover:text-primary/80 transition-colors">
