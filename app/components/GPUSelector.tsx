@@ -103,7 +103,6 @@ export function GPUSelector({ onSelect, selectedModel }: GPUSelectorProps) {
       GPU: gpu.Model,
       VRAM: `${gpu.vram} GB`,
       RAM: "", // Keep existing RAM
-      CPU: "", // Keep existing CPU
       Storage: "", // Keep existing Storage
       GPUBandwidth:
         typeof gpu["Memory Bandwidth (GB/s)"] === "string"

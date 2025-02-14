@@ -3,7 +3,6 @@
 import React from "react";
 import { LLMModel } from "@/app/data/llm-models";
 import {
-  Cpu,
   MemoryStick,
   MonitorCog,
   HardDrive,
@@ -29,7 +28,6 @@ import {
 } from "@/components/ui/tooltip";
 
 export interface SystemInfo {
-  CPU: string;
   RAM: string;
   GPU: string;
   VRAM: string;
@@ -162,12 +160,6 @@ export const SystemChecker = ({
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">Hardware Overview</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
-            <SystemSpecItem
-              icon={<Cpu className="w-5 h-5" />}
-              label="CPU"
-              value={systemInfo?.CPU || "Not detected"}
-              tooltip="Central Processing Unit"
-            />
             <SystemSpecItem
               icon={<MemoryStick className="w-5 h-5" />}
               label="System RAM"

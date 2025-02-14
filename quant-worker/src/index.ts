@@ -16,7 +16,6 @@ interface SystemSpecs {
   totalRam: number;
   ramBandwidth: number;
   gpuBrand?: string;
-  cpuBrand?: string;
 }
 
 interface ModelAnalysis {

@@ -4,5 +4,6 @@ main = "canyourunai-worker/src/index.ts"
 
 kv_namespaces = [
   { binding = "SYSTEM_INFO", id = "097faddb5ea74a6cb856d604fda8dc2e", preview_id = "b145afab1c7545688759ba64a5111e36" },
-  { binding = "GPU_DATABASE", id = "2d9ac1b404334f2ab1a824482bf83b25" }
+  { binding = "GPU_DATABASE", id = "2d9ac1b404334f2ab1a824482bf83b25" },
+  { binding = "CPU_DATABASE", id = "2d9ac1b404334f2ab1a824482bf83b25"}
 ]

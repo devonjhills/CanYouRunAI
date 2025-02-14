@@ -1,5 +1,4 @@
 export interface LLMRequirements {
-  CPU: string;
   RAM: string;
   GPU: string;
   VRAM: string;
@@ -24,7 +23,6 @@ export const llmModels: LLMModel[] = [
     name: "Llama 2 (7B)",
     description: "Meta's 7B parameter model, good for basic tasks",
     requirements: {
-      CPU: "Intel Core i5/AMD Ryzen 5 or better",
       RAM: "16.0 GB",
       GPU: "NVIDIA GTX 1060 6GB or better",
       VRAM: "6.0 GB",
@@ -39,7 +37,6 @@ export const llmModels: LLMModel[] = [
     name: "Llama 2 (13B)",
     description: "Meta's 13B parameter model, better reasoning capabilities",
     requirements: {
-      CPU: "Intel Core i7/AMD Ryzen 7 or better",
       RAM: "32.0 GB",
       GPU: "NVIDIA RTX 2060 8GB or better",
       VRAM: "8.0 GB",
@@ -55,7 +52,6 @@ export const llmModels: LLMModel[] = [
     description:
       "Meta's largest model, best performance but resource intensive",
     requirements: {
-      CPU: "Intel Core i9/AMD Ryzen 9 or better",
       RAM: "64.0 GB",
       GPU: "NVIDIA RTX 3080 or better",
       VRAM: "16.0 GB",
@@ -71,7 +67,6 @@ export const llmModels: LLMModel[] = [
     description:
       "Mistral's mixture of experts model, high performance for diverse tasks",
     requirements: {
-      CPU: "Intel Core i9/AMD Ryzen 9 or better",
       RAM: "48.0 GB",
       GPU: "NVIDIA RTX 3070 or better",
       VRAM: "12.0 GB",
@@ -87,7 +82,6 @@ export const llmModels: LLMModel[] = [
     description:
       "Meta's most advanced open-source model, excels in complex tasks with multilingual support and long context capabilities.",
     requirements: {
-      CPU: "Intel Xeon/AMD EPYC or better",
       RAM: "128.0 GB",
       GPU: "NVIDIA A100 (80GB) or better",
       VRAM: "80.0 GB",
@@ -103,7 +97,6 @@ export const llmModels: LLMModel[] = [
     description:
       "BigScience's multilingual model supporting natural and programming languages, focused on open access.",
     requirements: {
-      CPU: "AMD EPYC or Intel Xeon Platinum processors recommended.",
       RAM: "128.0 GB or more",
       GPU: "NVIDIA A100 (80GB) or equivalent cluster setup.",
       VRAM: "80.0 GB per GPU node.",
@@ -119,7 +112,6 @@ export const llmModels: LLMModel[] = [
     description:
       "Technology Innovation Institute's high-performing multilingual model, excelling in reasoning and coding tasks.",
     requirements: {
-      CPU: "High-end server-grade CPUs like AMD EPYC.",
       RAM: "256.0 GB recommended.",
       GPU: "NVIDIA H100/A100 GPUs with at least four nodes in a distributed setup.",
       VRAM: ">80.0 GB per node for optimal performance.",
@@ -137,7 +129,6 @@ export const llmModels: LLMModel[] = [
     name: "Llama 3.1 (8B)",
     description: "Meta's efficient 8B parameter model with 128k context window",
     requirements: {
-      CPU: "Intel Core i7/AMD Ryzen 7 or better",
       RAM: "32.0 GB",
       GPU: "NVIDIA RTX 3060 or better",
       VRAM: "10.0 GB",
@@ -152,7 +143,6 @@ export const llmModels: LLMModel[] = [
     name: "Llama 3.1 (70B)",
     description: "Meta's flagship model with enhanced reasoning capabilities",
     requirements: {
-      CPU: "Intel Core i9/AMD Ryzen 9 or better",
       RAM: "64.0 GB",
       GPU: "NVIDIA RTX 4090 or better",
       VRAM: "24.0 GB",
@@ -168,7 +158,6 @@ export const llmModels: LLMModel[] = [
     description:
       "Top-ranked model for complex reasoning tasks (12GB VRAM optimized)",
     requirements: {
-      CPU: "AMD Ryzen 9/Intel Xeon W-3400",
       RAM: "128.0 GB",
       GPU: "NVIDIA RTX 3090 (24GB) or better",
       VRAM: "12.0 GB",
@@ -184,7 +173,6 @@ export const llmModels: LLMModel[] = [
     description:
       "State-of-the-art mixture of experts model with 176B total params",
     requirements: {
-      CPU: "AMD Threadripper PRO/Intel Xeon W-3400",
       RAM: "96.0 GB",
       GPU: "NVIDIA RTX 4090 (24GB) or dual RTX 3090",
       VRAM: "24.0 GB",
@@ -199,7 +187,6 @@ export const llmModels: LLMModel[] = [
     name: "Phi-4",
     description: "Microsoft's lightweight model excelling in math/logic tasks",
     requirements: {
-      CPU: "Intel Core i5/AMD Ryzen 5 or better",
       RAM: "24.0 GB",
       GPU: "NVIDIA RTX 3060 or better",
       VRAM: "8.0 GB",
@@ -214,7 +201,6 @@ export const llmModels: LLMModel[] = [
     name: "Qwen2.5 72B",
     description: "Alibaba's multilingual model with 131k context window",
     requirements: {
-      CPU: "AMD Ryzen 9 7950X3D/Intel Core i9-14900K",
       RAM: "128.0 GB",
       GPU: "NVIDIA RTX 6000 Ada or dual RTX 4090",
       VRAM: "48.0 GB",
@@ -229,7 +215,6 @@ export const llmModels: LLMModel[] = [
     name: "Gemma2 9B",
     description: "Google's lightweight model with strong general performance",
     requirements: {
-      CPU: "Intel Core i7/AMD Ryzen 7 or better",
       RAM: "32.0 GB",
       GPU: "NVIDIA RTX 2080 Ti or better",
       VRAM: "10.0 GB",
@@ -244,7 +229,6 @@ export const llmModels: LLMModel[] = [
     name: "Mistral Large 2",
     description: "Commercial-grade model with 128k context window",
     requirements: {
-      CPU: "AMD Ryzen 9/Intel Core i9",
       RAM: "64.0 GB",
       GPU: "NVIDIA RTX 4080 Super or better",
       VRAM: "16.0 GB",
@@ -259,7 +243,6 @@ export const llmModels: LLMModel[] = [
     name: "Codestral-Mamba",
     description: "Specialized coding model with 256k context window",
     requirements: {
-      CPU: "Intel Core i7/AMD Ryzen 7 or better",
       RAM: "48.0 GB",
       GPU: "NVIDIA RTX 3080 (12GB) or better",
       VRAM: "12.0 GB",
@@ -274,7 +257,6 @@ export const llmModels: LLMModel[] = [
     name: "DeepSeek V3",
     description: "High-speed inference model (10.9 tokens/sec on 24GB VRAM)",
     requirements: {
-      CPU: "AMD Ryzen 9 7900X/Intel Core i7-14700K",
       RAM: "64.0 GB",
       GPU: "NVIDIA RTX 4090 or A4000 Ada",
       VRAM: "24.0 GB",
@@ -289,7 +271,6 @@ export const llmModels: LLMModel[] = [
 export const modelCategories = [
   { id: "all", label: "All Models" },
   { id: "popular", label: "Popular" },
-  { id: "cpu-only", label: "CPU Only" },
   { id: "high-end", label: "High-End" },
   { id: "coding", label: "Coding" },
   { id: "multilingual", label: "Multilingual" },

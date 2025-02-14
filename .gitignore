@@ -39,7 +39,8 @@ next-env.d.ts
 venv/
 ENV/
 env/
+myenv/
 .Python
 pip-log.txt
 pip-delete-this-directory.txt
-scripts/gpu_scraper/gpu-data.json
+scripts/gpu-data.json

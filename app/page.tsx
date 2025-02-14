@@ -1,7 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { llmModels } from "@/app/data/llm-models";
 import { useEffect, useState } from "react";
 import { LLMModel } from "@/app/data/llm-models";
@@ -9,11 +7,7 @@ import { SystemInfo, SystemChecker } from "@/app/components/SystemChecker";
 import Cookies from "js-cookie";
 import type { SystemSpecs, AdvancedAnalysis } from "./data/llm-models";
 import { AdvancedAnalysisSection } from "./components/AdvancedAnalysis";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { CPUSelector } from "@/app/components/CPUSelector";
-import { GPUSelector } from "@/app/components/GPUSelector";
-import { CPUSpecs } from "@/app/data/hardware-db";
+import LLMCompatibilityChecker from "./components/LLMCompatibilityChecker";
 
 const isProd = process.env.NODE_ENV === "production";
 
@@ -32,16 +26,8 @@ export default function Home() {
   const [analysis, setAnalysis] = useState<AdvancedAnalysis | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // This state now holds the modelId entered in the advanced tab.
   const [modelId, setModelId] = useState("");
   const [lastChecked, setLastChecked] = useState<string | null>(null);
-  const [formData, setFormData] = useState<SystemInfo>({
-    CPU: "",
-    RAM: "",
-    GPU: "",
-    VRAM: "",
-    Storage: "",
-  });
 
   useEffect(() => {
     // Initial check on page load
@@ -55,24 +41,6 @@ export default function Home() {
       setLastChecked(timestamp || null);
     }
   }, []);
-
-  // Store system info
-  const storeSystemInfo = (info: SystemInfo) => {
-    const storageData = {
-      ...info,
-      lastChecked: new Date().toISOString(),
-    };
-
-    if (isProd) {
-      Cookies.set("systemInfo", JSON.stringify(storageData), { expires: 30 });
-      Cookies.set("systemInfoTimestamp", new Date().toISOString(), {
-        expires: 30,
-      });
-    } else {
-      localStorage.setItem("systemInfo", JSON.stringify(storageData));
-      localStorage.setItem("systemInfoTimestamp", new Date().toISOString());
-    }
-  };
 
   // Get stored system info
   const getStoredSystemInfo = () => {
@@ -133,121 +101,16 @@ export default function Home() {
     }
   };
 
-  const handleSubmit = () => {
-    storeSystemInfo(formData);
-    setSystemInfo(formData);
-    const timestamp = new Date().toISOString();
-    setLastChecked(timestamp);
-    if (isProd) {
-      Cookies.set("systemInfoTimestamp", timestamp, {
-        expires: 1,
-        secure: true,
-        sameSite: "none",
-      });
-    } else {
-      localStorage.setItem("systemInfoTimestamp", timestamp);
-    }
-    const element = document.getElementById("system-requirements");
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-    }
-  };
-
   return (
     <div className="min-h-screen">
       <section className="py-12 px-6 bg-gradient-to-b from-background to-muted/30">
         <div className="max-w-6xl mx-auto space-y-12">
-          {/* Hero Section with Hardware Input */}
-          <Card className="glass p-12 border-2 shadow-2xl relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent pointer-events-none" />
-            <div className="relative space-y-8 ">
-              <div className="max-w-2xl">
-                <h1 className="text-4xl md:text-5xl font-black leading-tight mb-4 text-gradient">
-                  Can I Run this LLM{" "}
-                  <span className="text-primary">locally?</span>
-                </h1>
-                <p className="text-lg text-muted-foreground">
-                  Enter your hardware details below to check which AI models you
-                  can run on your system.
-                </p>
-              </div>
-
-              {/* Hardware Input Section */}
-              <Card className="p-6 space-y-6 shadow-md">
-                <div className="grid gap-6 md:grid-cols-2">
-                  <div className="space-y-3">
-                    <CPUSelector
-                      onSelect={(cpu: CPUSpecs) => {
-                        setFormData((prev) => ({
-                          ...prev,
-                          CPU: cpu.model,
-                        }));
-                      }}
-                      selectedModel={formData.CPU}
-                    />
-                  </div>
-
-                  <div className="space-y-3">
-                    <GPUSelector
-                      onSelect={(gpu) => {
-                        setFormData((prev) => ({
-                          ...prev,
-                          GPU: gpu.GPU,
-                          VRAM: gpu.VRAM,
-                          GPUBandwidth: gpu.GPUBandwidth,
-                          GPUDetails: gpu.GPUDetails,
-                        }));
-                      }}
-                      selectedModel={formData.GPU}
-                    />
-                  </div>
-
-                  <div className="space-y-3">
-                    <Label>RAM (GB)</Label>
-                    <Input
-                      type="number"
-                      value={formData.RAM.split(" ")[0] || ""}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          RAM: `${e.target.value} GB`,
-                        }))
-                      }
-                      placeholder="Enter RAM amount"
-                    />
-                  </div>
-
-                  <div className="space-y-3">
-                    <Label>Storage (GB)</Label>
-                    <Input
-                      type="number"
-                      value={formData.Storage.split(" ")[0] || ""}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          Storage: `${e.target.value} GB`,
-                        }))
-                      }
-                      placeholder="Enter storage amount"
-                    />
-                  </div>
-                </div>
-
-                <Button
-                  className="w-full py-6 bg-primary hover:bg-primary/90 transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-lg"
-                  onClick={handleSubmit}
-                  disabled={
-                    !formData.CPU ||
-                    !formData.GPU ||
-                    !formData.RAM ||
-                    !formData.Storage
-                  }
-                >
-                  Check Model Compatibility
-                </Button>
-              </Card>
-            </div>
-          </Card>
+          <LLMCompatibilityChecker
+            onSubmit={(info: SystemInfo, timestamp: string) => {
+              setSystemInfo(info);
+              setLastChecked(timestamp);
+            }}
+          />
 
           {/* System Requirements Check */}
           {systemInfo && (
