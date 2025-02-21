@@ -1,0 +1,509 @@
+{
+  "glossary": [
+    {
+      "term": "Local Inference",
+      "slug": "local-inference",
+      "category": "Local Deployment",
+      "definition": "Local Inference refers to the process of running artificial intelligence model predictions directly on a local computer or edge device. This approach bypasses remote cloud servers by using the device’s own processing power. Local Inference supports offline AI and private AI by processing data on desktops or embedded systems. It requires hardware optimization and careful memory management to work efficiently with CPUs and GPUs. The method also uses techniques such as on-device quantization and model compression to improve speed and reduce latency during real-time decision making.",
+      "relatedTerms": [
+        "Quantization",
+        "GPU Acceleration",
+        "Ollama",
+        "Edge Computing",
+        "On-Device Processing"
+      ],
+      "keywords": [
+        "offline AI",
+        "private AI",
+        "desktop inference",
+        "local processing"
+      ]
+    },
+    {
+      "term": "GGML/GGUF",
+      "slug": "ggml-gguf",
+      "category": "Local Deployment",
+      "definition": "GGML/GGUF is a specialized tensor library and file format that optimizes the inference process for large language models on consumer hardware. It supports both CPU and hybrid CPU/GPU inference by using efficient data structures that speed up model loading and execution. The format improves memory usage and computation speed and works well with popular projects such as llama.cpp. It also supports quantization techniques and model conversion tools to reduce model size and simplify local deployment of language models.",
+      "relatedTerms": [
+        "Llama.cpp",
+        "Quantization",
+        "Local Inference",
+        "Tensor Optimization",
+        "Model Conversion"
+      ],
+      "keywords": [
+        "llama.cpp format",
+        "CPU optimization",
+        "local LLM formats",
+        "open model format"
+      ]
+    },
+    {
+      "term": "MLX",
+      "slug": "mlx",
+      "category": "Local Deployment",
+      "definition": "MLX is Apple’s machine learning framework that runs AI models efficiently on Apple Silicon devices. It takes full advantage of the unified memory architecture in M1 and M2 chips to process machine learning tasks on local hardware. MLX supports secure and private on-device AI by optimizing model execution through hardware acceleration. It integrates smoothly with Apple’s software ecosystem and works with tools such as Core ML and the Apple Neural Engine for improved real-time data processing.",
+      "relatedTerms": [
+        "Apple Neural Engine",
+        "Core ML",
+        "Local Inference",
+        "Metal Performance Shaders",
+        "iOS Machine Learning"
+      ],
+      "keywords": [
+        "Apple ML framework",
+        "M1/M2 optimization",
+        "unified memory ML",
+        "private AI"
+      ]
+    },
+    {
+      "term": "WebLLM",
+      "slug": "webllm",
+      "category": "Local Deployment",
+      "definition": "WebLLM is a browser-based framework that runs large language models directly in web browsers. It uses WebGPU acceleration to boost the speed of model inference on client devices. WebLLM supports offline processing and maintains user privacy by keeping data on the local device. This framework helps developers deploy AI applications without the need for cloud servers, thereby reducing latency. It also supports model quantization and optimization, and integrates with modern web technologies such as WebAssembly for efficient performance.",
+      "relatedTerms": [
+        "WebGPU",
+        "Client-Side AI",
+        "Model Quantization",
+        "WebAssembly",
+        "Edge AI"
+      ],
+      "keywords": [
+        "browser AI",
+        "web-based LLM",
+        "privacy-focused AI",
+        "edge computing"
+      ]
+    },
+    {
+      "term": "LangChain",
+      "slug": "langchain",
+      "category": "Local Deployment",
+      "definition": "LangChain is an open-source framework that links large language models with various data sources and logical processing tools to create intelligent applications. It enables the construction of AI workflows by connecting language model outputs with external databases, APIs, and processing engines. LangChain supports integration with vector databases, retrieval-augmented generation techniques, and prompt engineering. The framework uses a modular design that allows developers to chain model predictions with custom logic, making it ideal for building chatbots, automated assistants, and data-driven local applications.",
+      "relatedTerms": [
+        "RAG",
+        "Vector Database",
+        "Prompt Engineering",
+        "Chain-of-Thought",
+        "Pipeline Integration"
+      ],
+      "keywords": [
+        "LLM orchestration",
+        "AI workflows",
+        "local AI apps",
+        "model chaining"
+      ]
+    },
+    {
+      "term": "RAG (Retrieval-Augmented Generation)",
+      "slug": "rag",
+      "category": "Local Deployment",
+      "definition": "Retrieval-Augmented Generation (RAG) is an architecture that combines large language models with external knowledge retrieval systems. This integration allows models to access current and contextually relevant information during inference, resulting in more accurate and detailed responses. RAG systems use vector databases and semantic search techniques to pull data from external sources and integrate it with model outputs. The approach bridges the gap between static training data and dynamic information sources, making it ideal for tasks like question answering, summarization, and information retrieval in local deployment scenarios.",
+      "relatedTerms": [
+        "Vector Database",
+        "LangChain",
+        "Fine-tuning",
+        "External Data Integration",
+        "Knowledge Base Augmentation"
+      ],
+      "keywords": [
+        "knowledge-enhanced AI",
+        "document retrieval",
+        "context-aware LLM",
+        "local knowledge"
+      ]
+    },
+    {
+      "term": "Vector Database",
+      "slug": "vector-database",
+      "category": "Local Deployment",
+      "definition": "A Vector Database is a specialized storage system designed to hold high-dimensional vector data. It indexes and manages numerical representations, known as embeddings, that arise from text, images, and other data types. This system enables fast and efficient semantic search and similarity matching for AI applications. Vector databases support real-time search queries and play a key role in managing local knowledge bases. They integrate with retrieval-augmented generation architectures to deliver context-aware responses in various AI workflows.",
+      "relatedTerms": [
+        "RAG",
+        "Embeddings",
+        "Similarity Search",
+        "Embedding Indexing",
+        "High-Dimensional Data"
+      ],
+      "keywords": [
+        "AI database",
+        "semantic search",
+        "local knowledge base",
+        "vector storage"
+      ]
+    },
+    {
+      "term": "Whisper.cpp",
+      "slug": "whisper-cpp",
+      "category": "Local Deployment",
+      "definition": "Whisper.cpp is a C/C++ implementation of OpenAI’s Whisper speech recognition model. It enables efficient local transcription by running speech-to-text conversion directly on consumer hardware. This port works offline and uses optimized algorithms to reduce memory usage and processing time. Whisper.cpp provides a reliable solution for developers who need a privacy-focused speech recognition tool that operates without cloud dependency. The tool also supports real-time audio processing and integrates with local inference systems for seamless performance.",
+      "relatedTerms": [
+        "Local Inference",
+        "GGML",
+        "Audio Processing",
+        "Local Speech Recognition",
+        "Transcription Library"
+      ],
+      "keywords": [
+        "speech-to-text",
+        "offline transcription",
+        "privacy-focused STT",
+        "C++ AI"
+      ]
+    },
+    {
+      "term": "Stable Diffusion",
+      "slug": "stable-diffusion",
+      "category": "Local Deployment",
+      "definition": "Stable Diffusion is an open-source text-to-image generation model that converts written descriptions into detailed images. It runs on consumer GPUs and supports local execution for offline creative workflows. The model uses a diffusion process to transform random noise into refined images through gradual improvement. Stable Diffusion is widely used in digital art creation, design prototyping, and creative AI applications. Its optimization for GPU VRAM and memory usage makes it accessible for local deployment and experimentation by artists and developers alike.",
+      "relatedTerms": [
+        "Diffusion Models",
+        "GPU VRAM",
+        "Model Optimization",
+        "Creative AI Tools",
+        "Image Generation"
+      ],
+      "keywords": [
+        "local image generation",
+        "text-to-image",
+        "open source AI art",
+        "offline SD"
+      ]
+    },
+    {
+      "term": "Text Generation WebUI",
+      "slug": "text-generation-webui",
+      "category": "Local Deployment",
+      "definition": "Text Generation WebUI is an open-source user interface that allows users to run and experiment with language models on their local machines. The browser-based interface simplifies the process of testing models and inputting prompts, making it accessible for both developers and researchers. It supports interactive exploration, model chaining, and parameter tuning in real time. The tool is designed to bring AI research and practical applications closer by providing a user-friendly environment for testing local language model performance.",
+      "relatedTerms": [
+        "Ollama",
+        "LoRA",
+        "Model Loading",
+        "Interactive AI Dashboard",
+        "Local Inference UI"
+      ],
+      "keywords": [
+        "LLM interface",
+        "local chatbot",
+        "model testing",
+        "AI playground"
+      ]
+    },
+    {
+      "term": "KoboldAI",
+      "slug": "koboldai",
+      "category": "Local Deployment",
+      "definition": "KoboldAI is a comprehensive local client designed for running and fine-tuning large language models. It emphasizes tools for creative writing, collaborative storytelling, and interactive narrative generation. The client supports model optimization, prompt engineering, and various fine-tuning techniques to enhance writing outputs. KoboldAI allows users to experiment with different configurations while maintaining data privacy through local processing. It is well suited for writers, researchers, and developers who seek to explore AI-generated content and storytelling.",
+      "relatedTerms": [
+        "Text Generation WebUI",
+        "Fine-tuning",
+        "Prompt Engineering",
+        "Creative AI Tools",
+        "Interactive Narrative Engine"
+      ],
+      "keywords": [
+        "AI writing assistant",
+        "local story generation",
+        "LLM frontend",
+        "offline writing"
+      ]
+    },
+    {
+      "term": "Core ML",
+      "slug": "core-ml",
+      "category": "Local Deployment",
+      "definition": "Core ML is Apple’s machine learning framework that enables developers to deploy optimized AI models on Apple devices. It leverages hardware acceleration on macOS, iOS, and other Apple platforms through Apple Silicon and the Apple Neural Engine. Core ML simplifies the integration of machine learning into applications and supports a wide range of tasks, including image recognition, natural language processing, and predictive analytics. By shifting computations from cloud servers to local devices, Core ML improves response times and enhances data privacy.",
+      "relatedTerms": [
+        "MLX",
+        "Apple Neural Engine",
+        "Model Conversion",
+        "On-Device Inference",
+        "Machine Learning Deployment"
+      ],
+      "keywords": ["iOS ML", "macOS AI", "Apple optimization", "private ML"]
+    },
+    {
+      "term": "ONNX Runtime",
+      "slug": "onnx-runtime",
+      "category": "Local Deployment",
+      "definition": "ONNX Runtime is a high-performance inference engine that executes models in the ONNX format across various hardware platforms. It supports hardware acceleration on CPUs, GPUs, and specialized AI devices to reduce latency and boost throughput. ONNX Runtime optimizes model execution with techniques like quantization and supports cross-platform deployment. It serves as a versatile engine for developers who want to run machine learning models efficiently on desktop systems and embedded devices, making it a valuable tool in local inference setups.",
+      "relatedTerms": [
+        "ONNX",
+        "Quantization",
+        "Model Optimization",
+        "Hardware-Accelerated AI",
+        "Inference Engine"
+      ],
+      "keywords": [
+        "cross-platform inference",
+        "ONNX execution",
+        "accelerated inference",
+        "model serving"
+      ]
+    },
+    {
+      "term": "AI Accelerator",
+      "slug": "ai-accelerator",
+      "category": "Hardware",
+      "definition": "An AI Accelerator is a specialized hardware component that speeds up artificial intelligence workload processing. These devices include neural processing units (NPUs) and tensor processing units (TPUs) that are built to handle complex matrix operations and parallel computations. AI Accelerators improve energy efficiency and reduce processing time for deep learning models, especially in local inference scenarios. They are used in consumer electronics, embedded systems, and edge devices to support faster data analysis and real-time decision making.",
+      "relatedTerms": [
+        "GPU",
+        "Tensor Cores",
+        "Local Inference",
+        "Dedicated AI Hardware",
+        "Processing Unit"
+      ],
+      "keywords": [
+        "neural processor",
+        "ML accelerator",
+        "hardware AI",
+        "edge AI chip"
+      ]
+    },
+    {
+      "term": "Model Parallelism",
+      "slug": "model-parallelism",
+      "category": "Local Deployment",
+      "definition": "Model Parallelism is a technique that divides large neural network models across multiple devices to manage memory and processing demands efficiently. By splitting the model into smaller components that run on different GPUs or processors, this method reduces the memory burden on any single device. Model Parallelism supports distributed inference and helps scale complex AI models for real-time applications. The approach works well with other optimization methods, such as quantization and model sharding, to improve performance during local deployment.",
+      "relatedTerms": [
+        "GPU VRAM",
+        "Distributed Inference",
+        "Quantization",
+        "Parallel Processing",
+        "Scalable Inference"
+      ],
+      "keywords": [
+        "large model handling",
+        "multi-GPU AI",
+        "memory management",
+        "model sharding"
+      ]
+    },
+    {
+      "term": "4-bit Quantization",
+      "slug": "4bit-quantization",
+      "category": "Local Deployment",
+      "definition": "4-bit Quantization is an advanced technique for compressing neural network models by converting model weights to 4-bit precision. This process greatly reduces the memory footprint and speeds up inference on local hardware. It works by lowering the precision of model parameters while maintaining acceptable performance levels. This technique is ideal for environments with limited computing resources, such as edge devices and mobile platforms. It also works in conjunction with other optimization methods like model pruning to improve efficiency without significant loss of accuracy.",
+      "relatedTerms": [
+        "GGML",
+        "QLoRA",
+        "Model Optimization",
+        "Model Compression",
+        "Precision Reduction"
+      ],
+      "keywords": [
+        "extreme quantization",
+        "low-bit AI",
+        "memory-efficient models",
+        "4bit LLM"
+      ]
+    },
+    {
+      "term": "Speculative Sampling",
+      "slug": "speculative-sampling",
+      "category": "LLM",
+      "definition": "Speculative Sampling is an inference acceleration method that uses a smaller, fast model to generate candidate tokens. The larger language model then reviews and verifies these tokens to produce the final text output. This two-step process reduces the overall time needed for inference by delegating the initial token prediction to a lightweight model. Speculative Sampling optimizes decoding strategies and helps balance the trade-off between speed and accuracy in text generation. It is especially useful in local deployments where low latency is crucial.",
+      "relatedTerms": [
+        "Model Inference",
+        "Decoding Strategies",
+        "Local Inference",
+        "Token Prediction",
+        "Decoding Acceleration"
+      ],
+      "keywords": [
+        "LLM speedup",
+        "draft verification",
+        "parallel decoding",
+        "sampling optimization"
+      ]
+    },
+    {
+      "term": "Mixture of Experts (MoE)",
+      "slug": "mixture-of-experts",
+      "category": "LLM",
+      "definition": "Mixture of Experts (MoE) is a neural network architecture that distributes tasks among multiple specialized submodels, or experts. Each expert focuses on a specific task or type of data, and the system selects the best expert to process each input. This modular design enhances efficiency and scalability by allowing each component to optimize for its designated function. MoE reduces the overall computational load during local inference and supports targeted model tuning. It works well with sparse activation techniques and improves accuracy by leveraging the specialized knowledge of each expert network.",
+      "relatedTerms": [
+        "Sparse Activation",
+        "Model Architecture",
+        "Local Inference",
+        "Model Routing",
+        "Specialized Neural Networks"
+      ],
+      "keywords": [
+        "modular AI",
+        "specialized submodels",
+        "efficient scaling",
+        "expert networks"
+      ]
+    },
+    {
+      "term": "Phi-2",
+      "slug": "phi-2",
+      "category": "LLM",
+      "definition": "Phi-2 is a state-of-the-art language model developed by Microsoft that contains 2.7 billion parameters. It delivers strong reasoning and text generation capabilities while operating efficiently on local hardware. Phi-2 uses advanced optimization techniques such as quantization and model parallelism to balance performance with resource usage. The model handles natural language processing tasks and supports real-time applications like interactive chatbots. Its compact design makes it a practical option for local AI deployments that require reliable and contextually aware responses.",
+      "relatedTerms": [
+        "Small Language Models",
+        "Local Inference",
+        "Model Optimization",
+        "Optimized LLM",
+        "Local NLP"
+      ],
+      "keywords": ["compact LLM", "efficient AI", "reasoning models", "SLM"]
+    },
+    {
+      "term": "Alpaca",
+      "slug": "alpaca",
+      "category": "LLM",
+      "definition": "Alpaca is an instruction-following large language model developed by Stanford and fine-tuned from the LLaMA model. It is designed for accessible local experimentation and academic research in natural language processing. Alpaca excels at understanding specific instructions and generating appropriate text responses. The model benefits from fine-tuning techniques such as LoRA and integrates easily with local deployment frameworks. It serves as a practical example of how academic models can be adapted for real-world applications, including chatbots, content generation, and interactive AI systems.",
+      "relatedTerms": [
+        "Fine-tuning",
+        "LoRA",
+        "Local Deployment",
+        "Open-Source LLM",
+        "Instruction-Based Model"
+      ],
+      "keywords": [
+        "instruction model",
+        "LLaMA derivative",
+        "academic LLM",
+        "local AI"
+      ]
+    },
+    {
+      "term": "CUDA",
+      "slug": "cuda",
+      "category": "Hardware",
+      "definition": "CUDA is a parallel computing platform and programming model developed by NVIDIA. It allows developers to use GPUs for general-purpose computing tasks. CUDA accelerates deep learning training and inference by processing complex operations in parallel on GPU hardware. Developers rely on CUDA to optimize performance in AI applications and large language model deployments.",
+      "relatedTerms": [
+        "NVIDIA",
+        "GPU Acceleration",
+        "Tensor Cores",
+        "Parallel Computing"
+      ],
+      "keywords": [
+        "GPU programming",
+        "parallel computing",
+        "NVIDIA CUDA",
+        "GPU AI acceleration"
+      ]
+    },
+    {
+      "term": "TensorRT",
+      "slug": "tensorrt",
+      "category": "Hardware",
+      "definition": "TensorRT is NVIDIA's deep learning inference optimizer and runtime engine. It optimizes neural network models to run efficiently on GPUs during inference. TensorRT reduces memory footprint and accelerates model execution, making it ideal for real-time AI applications. Developers integrate TensorRT with deep learning frameworks to achieve low-latency, high-throughput performance in production environments.",
+      "relatedTerms": ["CUDA", "GPU Acceleration", "Deep Learning Inference"],
+      "keywords": [
+        "NVIDIA TensorRT",
+        "inference optimization",
+        "GPU inference",
+        "AI runtime"
+      ]
+    },
+    {
+      "term": "NVIDIA A100",
+      "slug": "nvidia-a100",
+      "category": "Hardware",
+      "definition": "The NVIDIA A100 is a high-performance GPU designed for artificial intelligence, machine learning, and high-performance computing. It features high memory bandwidth and specialized Tensor Cores to accelerate both training and inference of large language models. The A100 GPU supports data-intensive tasks and powers many advanced AI applications in data centers and cloud environments.",
+      "relatedTerms": ["NVIDIA Ampere", "Tensor Cores", "GPU Acceleration"],
+      "keywords": [
+        "A100 GPU",
+        "AI accelerator",
+        "data center GPU",
+        "deep learning GPU"
+      ]
+    },
+    {
+      "term": "AMD ROCm",
+      "slug": "amd-rocm",
+      "category": "Hardware",
+      "definition": "AMD ROCm is an open software platform that supports GPU computing on AMD hardware. It provides a framework for deep learning and AI tasks by enabling parallel computation on AMD GPUs. ROCm works with popular deep learning libraries to facilitate high-performance inference and training. Developers use ROCm to optimize local AI models and scale computing resources efficiently on AMD systems.",
+      "relatedTerms": ["AMD", "GPU Acceleration", "OpenCL"],
+      "keywords": [
+        "AMD ROCm",
+        "GPU computing",
+        "open platform",
+        "AMD deep learning"
+      ]
+    },
+    {
+      "term": "Deep Learning Super Sampling (DLSS)",
+      "slug": "dlss",
+      "category": "Graphic Cards",
+      "definition": "Deep Learning Super Sampling (DLSS) is a technology that uses artificial intelligence to upscale lower resolution images in real time. It trains neural networks on high-resolution images to generate detailed visuals from lower quality inputs. DLSS leverages GPU acceleration to improve frame rates and enhance image clarity in gaming and graphic design applications. The technique reduces rendering workloads while preserving visual quality.",
+      "relatedTerms": ["Ray Tracing", "GPU Acceleration", "Image Upscaling"],
+      "keywords": [
+        "DLSS",
+        "AI upscaling",
+        "real-time graphics",
+        "GPU rendering"
+      ]
+    },
+    {
+      "term": "Ray Tracing",
+      "slug": "ray-tracing",
+      "category": "Graphic Cards",
+      "definition": "Ray Tracing is a rendering technique that simulates the behavior of light to create realistic images. It uses advanced algorithms and powerful GPUs to calculate light interactions, reflections, and shadows in real time. Ray Tracing enhances the visual quality of 3D graphics in games, simulations, and design applications. This technique requires optimized hardware and software to balance visual fidelity with performance.",
+      "relatedTerms": ["DLSS", "GPU Acceleration", "Real-Time Rendering"],
+      "keywords": [
+        "ray tracing",
+        "realistic graphics",
+        "GPU rendering",
+        "3D visualization"
+      ]
+    },
+    {
+      "term": "FPGA in AI",
+      "slug": "fpga-in-ai",
+      "category": "Hardware",
+      "definition": "FPGA in AI refers to the use of Field Programmable Gate Arrays for accelerating artificial intelligence and machine learning tasks. FPGAs offer a reconfigurable hardware solution that can be programmed to optimize specific AI algorithms. They deliver low latency and high energy efficiency, making them ideal for edge computing and local AI inference. This approach complements traditional GPUs and NPUs in various AI applications.",
+      "relatedTerms": ["ASIC", "Local Inference", "Hardware Acceleration"],
+      "keywords": [
+        "FPGA AI",
+        "custom hardware",
+        "reconfigurable computing",
+        "edge AI"
+      ]
+    },
+    {
+      "term": "Tensor Cores",
+      "slug": "tensor-cores",
+      "category": "Hardware",
+      "definition": "Tensor Cores are specialized processing units embedded in NVIDIA GPUs that accelerate matrix computations required for deep learning. They perform mixed-precision calculations that speed up both training and inference of large language models. Tensor Cores work with popular AI frameworks to optimize complex neural network operations, providing faster and more efficient processing in local and data center deployments.",
+      "relatedTerms": ["CUDA", "NVIDIA A100", "GPU Acceleration"],
+      "keywords": [
+        "Tensor Cores",
+        "matrix operations",
+        "deep learning acceleration",
+        "GPU performance"
+      ]
+    },
+    {
+      "term": "ASIC for AI",
+      "slug": "asic-for-ai",
+      "category": "Hardware",
+      "definition": "ASIC for AI refers to Application-Specific Integrated Circuits that are custom-designed to perform specific AI and machine learning tasks. These chips offer high performance and energy efficiency by focusing on dedicated computations required by neural networks. ASICs lower latency and reduce power consumption compared to general-purpose processors. They are widely used in data centers and edge devices for both training and inference of AI models.",
+      "relatedTerms": ["AI Accelerator", "NPU", "Custom Hardware"],
+      "keywords": [
+        "ASIC AI",
+        "custom AI chip",
+        "energy-efficient AI",
+        "dedicated AI hardware"
+      ]
+    },
+    {
+      "term": "NPU (Neural Processing Unit)",
+      "slug": "npu-neural-processing-unit",
+      "category": "Hardware",
+      "definition": "An NPU, or Neural Processing Unit, is a specialized microprocessor designed to accelerate neural network computations. NPUs handle image recognition, natural language processing, and data analysis with high efficiency. They offer dedicated hardware support for AI operations, reducing processing time and improving performance in local inference scenarios. NPUs integrate into various devices such as smartphones, edge devices, and data centers to boost AI performance.",
+      "relatedTerms": ["AI Accelerator", "Tensor Cores", "ASIC for AI"],
+      "keywords": [
+        "NPU",
+        "neural processor",
+        "dedicated AI chip",
+        "edge AI processing"
+      ]
+    }
+  ]
+}

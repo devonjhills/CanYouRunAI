@@ -100,50 +100,41 @@ export default function LLMCompatibilityChecker({
   };
 
   return (
-    <div className="py-16 px-4 sm:px-6 lg:px-8 border shadow-xl">
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-4xl font-extrabold text-center mb-4">
-          Can You Run This AI Locally?
-        </h1>
-        <p className="text-xl text-muted-foreground text-center mb-10">
-          Find out if your hardware meets the requirements to run the latest LLM
-          models.
-        </p>
+    <div className="py-20 px-4 sm:px-6 lg:px-8 min-h-screen bg-gradient-to-b from-background to-background/80">
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center space-y-4 mb-12">
+          <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl">
+            Can You Run This AI Locally?
+          </h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Find out if your hardware meets the requirements to run the latest
+            LLM models.
+          </p>
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl font-semibold">
-              Enter Your System Specs
-            </CardTitle>
-            <CardDescription>
-              We will check compatibility instantly.
-            </CardDescription>
+        <Card className="border-2 shadow-lg rounded-xl">
+          <CardHeader className="space-y-4">
+            <div className="space-y-2">
+              <CardTitle className="text-2xl font-bold tracking-tight">
+                Enter Your System Specs
+              </CardTitle>
+              <CardDescription className="text-base">
+                We will check compatibility instantly.
+              </CardDescription>
+            </div>
             {isSubmitted && (
-              <div className="flex items-center gap-2 text-sm text-green-500 dark:text-green-400">
-                <CheckCircle2 className="h-4 w-4" />
-                Data saved.
+              <div className="flex items-center gap-2 text-sm font-medium text-green-500 dark:text-green-400 bg-green-500/10 rounded-lg px-3 py-2">
+                <CheckCircle2 className="h-5 w-5" />
+                Data saved with {formData.GPU} ({formData.VRAM})
               </div>
             )}
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-8">
             <TooltipProvider>
-              <div className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-6">
+                <div className="grid gap-6 md:grid-cols-2">
                   {/* GPU Selector */}
                   <div className="space-y-2 md:col-span-2">
-                    <Label className="flex items-center gap-1.5">
-                      Graphics Card
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Info className="w-4 h-4 text-muted-foreground cursor-pointer" />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p className="text-sm">
-                            Select your primary GPU model
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </Label>
                     <GPUSelector
                       onSelect={(gpu) =>
                         setFormData((prev) => ({
@@ -179,7 +170,7 @@ export default function LLMCompatibilityChecker({
                     <div className="flex items-center gap-2">
                       <Input
                         type="number"
-                        value={formData.RAM.split(" ")[0] || ""}
+                        value={(formData.RAM || "").split(" ")[0] || ""}
                         onChange={(e) => {
                           const value = e.target.value;
                           if (parseFloat(value) >= 0 || value === "") {
@@ -218,7 +209,7 @@ export default function LLMCompatibilityChecker({
                     <div className="flex items-center gap-2">
                       <Input
                         type="number"
-                        value={formData.Storage.split(" ")[0] || ""}
+                        value={(formData.Storage || "").split(" ")[0] || ""}
                         onChange={(e) => {
                           const value = e.target.value;
                           if (parseFloat(value) >= 0 || value === "") {
@@ -242,10 +233,14 @@ export default function LLMCompatibilityChecker({
                   </div>
                 </div>
 
-                <Separator />
+                <Separator className="my-6" />
 
-                <div className="flex justify-between">
-                  <Button variant="outline" onClick={handleReset}>
+                <div className="flex justify-between pt-2">
+                  <Button
+                    variant="outline"
+                    onClick={handleReset}
+                    className="w-28"
+                  >
                     Reset
                   </Button>
                   <Button
@@ -254,6 +249,7 @@ export default function LLMCompatibilityChecker({
                       !formData.GPU || !formData.RAM || !formData.Storage
                     }
                     variant="default"
+                    className="w-36"
                   >
                     Analyze System
                   </Button>

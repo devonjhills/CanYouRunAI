@@ -40,6 +40,18 @@ interface ModelSummary {
   description: string | null;
 }
 
+interface HuggingFaceTreeFile {
+  type: string;
+  oid: string;
+  size: number;
+  path: string;
+  lfs?: {
+    oid: string;
+    size: number;
+    pointerSize: number;
+  };
+}
+
 // Allowed origins and helper functions for CORS
 const ALLOWED_ORIGINS = [
   "http://localhost:3000",
@@ -139,11 +151,13 @@ async function handleRequest(request: Request): Promise<Response> {
       }
 
       // Continue with the rest of the analysis...
-      const [modelConfig, modelParams, modelSummary] = await Promise.all([
-        configResponse.ok ? configResponse.json() : null,
-        fetchModelParams(modelId),
-        fetchModelSummary(modelId),
-      ]);
+      const [modelConfig, modelParams, modelSummary, modelSizeGb] =
+        await Promise.all([
+          configResponse.ok ? configResponse.json() : null,
+          fetchModelParams(modelId),
+          fetchModelSummary(modelId),
+          fetchModelTree(modelId),
+        ]);
 
       if (!modelConfig || !isValidConfig(modelConfig)) {
         return new Response(
@@ -181,6 +195,7 @@ async function handleRequest(request: Request): Promise<Response> {
           modelSummary,
           systemSpecs,
           quantizationResults,
+          modelSizeGb, // Add this new field
         }),
         { headers: corsHeaders },
       );
@@ -326,6 +341,36 @@ async function fetchModelSummary(modelId: string): Promise<ModelSummary> {
   } catch (error) {
     console.error("Error fetching model summary:", error);
     return { description: null };
+  }
+}
+
+async function fetchModelTree(modelId: string): Promise<number | null> {
+  try {
+    console.log(`[DEBUG] Fetching tree for model: ${modelId}`);
+    const response = await fetch(
+      `https://huggingface.co/api/models/${modelId}/tree/main`,
+    );
+
+    if (!response.ok) {
+      console.error(
+        `[ERROR] Failed to fetch tree: ${response.status} ${response.statusText}`,
+      );
+      return null;
+    }
+
+    const files = (await response.json()) as HuggingFaceTreeFile[];
+
+    // Sum only the top-level size field for all files
+    const totalBytes = files.reduce((sum, file) => {
+      return sum + file.size;
+    }, 0);
+
+    const sizeGb = totalBytes / 1e9;
+
+    return sizeGb;
+  } catch (error) {
+    console.error("[ERROR] Error fetching model tree:", error);
+    return null;
   }
 }
 

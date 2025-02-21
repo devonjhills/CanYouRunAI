@@ -1,9 +1,4 @@
-name = "canyourunai-worker"
-compatibility_date = "2025-02-05"
-main = "canyourunai-worker/src/index.ts"
-
-kv_namespaces = [
-  { binding = "SYSTEM_INFO", id = "097faddb5ea74a6cb856d604fda8dc2e", preview_id = "b145afab1c7545688759ba64a5111e36" },
-  { binding = "GPU_DATABASE", id = "2d9ac1b404334f2ab1a824482bf83b25" },
-  { binding = "CPU_DATABASE", id = "2d9ac1b404334f2ab1a824482bf83b25"}
+[env.local]
+kv = [
+  { binding = "gpu_db", id = "c4b8e7eb84964f8f9f77a8b4e4e5d6c4" }
 ]

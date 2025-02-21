@@ -23,7 +23,7 @@ export const Header = () => {
             className="w-8 h-8 md:w-10 md:h-10"
           />
           <span className="font-bold text-lg hidden sm:inline">
-            CanYouRunAI
+            can you run ai?
           </span>
         </Link>
 
@@ -34,6 +34,12 @@ export const Header = () => {
             className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors hidden sm:inline-block"
           >
             Home
+          </Link>
+          <Link
+            href="/glossary"
+            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors hidden sm:inline-block"
+          >
+            Glossary
           </Link>
           <a
             href="mailto:support@canyourunai.com"

@@ -4,66 +4,66 @@
 
 @layer base {
   :root {
-    /* Minimalist Monochrome+ - Light Theme */
-    --background: 0 0% 99%; /* Almost white */
-    --foreground: 0 0% 10%; /* Very dark gray */
+    /* Modern Light Theme */
+    --background: 0 0% 98%;
+    --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 10%;
+    --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 10%;
+    --popover-foreground: 222 47% 11%;
 
-    --primary: 260 80% 60%; /* Vibrant purple */
-    --primary-foreground: 0 0% 100%;
+    --primary: 244 75% 60%;
+    --primary-foreground: 210 40% 98%;
 
-    --secondary: 0 0% 90%; /* Light gray */
-    --secondary-foreground: 0 0% 10%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
 
-    --muted: 0 0% 90%;
-    --muted-foreground: 0 0% 40%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
 
-    --accent: 0 0% 50%; /* Medium gray */
-    --accent-foreground: 0 0% 100%;
+    --accent: 262 83% 58%;
+    --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 85% 60%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 0 0% 80%;
-    --input: 0 0% 90%;
-    --ring: 260 80% 60%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 244 75% 60%;
 
     --radius: 0.75rem;
   }
   .dark {
-    /* Minimalist Monochrome+ - Dark Theme */
-    --background: 0 0% 10%; /* Very dark gray */
-    --foreground: 0 0% 99%; /* Almost white */
+    /* Modern Dark Theme */
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
 
-    --card: 0 0% 15%;
-    --card-foreground: 0 0% 99%;
+    --card: 222 47% 13%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 0 0% 15%;
-    --popover-foreground: 0 0% 99%;
+    --popover: 222 47% 13%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 260 90% 70%; /* Even brighter purple */
-    --primary-foreground: 0 0% 10%;
+    --primary: 244 75% 65%;
+    --primary-foreground: 222 47% 11%;
 
-    --secondary: 0 0% 20%; /* Dark gray */
-    --secondary-foreground: 0 0% 99%;
+    --secondary: 217 32% 17%;
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 0 0% 20%;
-    --muted-foreground: 0 0% 70%;
+    --muted: 217 32% 17%;
+    --muted-foreground: 215 20% 65%;
 
-    --accent: 0 0% 60%; /* Lighter gray */
-    --accent-foreground: 0 0% 10%;
+    --accent: 262 83% 68%;
+    --accent-foreground: 222 47% 11%;
 
-    --destructive: 0 70% 50%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 0 0% 30%;
-    --input: 0 0% 20%;
-    --ring: 260 90% 70%;
+    --border: 217 32% 17%;
+    --input: 217 32% 17%;
+    --ring: 244 75% 65%;
   }
 }
 
@@ -79,17 +79,54 @@
   }
 }
 
+@layer components {
+  .main-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  .section-padding {
+    @apply py-12 sm:py-16 lg:py-24;
+  }
+
+  .heading-1 {
+    @apply text-4xl font-bold tracking-tight text-foreground sm:text-5xl;
+  }
+
+  .heading-2 {
+    @apply text-3xl font-semibold tracking-tight text-foreground;
+  }
+
+  .card-base {
+    @apply glass rounded-lg p-6;
+  }
+}
+
 @layer utilities {
   /* Glass Effect */
   .glass {
     @apply bg-background/80 backdrop-blur-lg border border-border/50;
   }
 
-  /* Enhanced Card Hover Effect */
-  .hover-card-effect {
-    @apply transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5;
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/70;
+  }
+
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background;
   }
 }
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @layer base {
   * {
     @apply border-border;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Check } from "lucide-react";
+import { Check, Info } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import {
@@ -12,6 +12,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { GPUSpecs } from "@/app/data/gpu-db";
 import { SystemInfo } from "./SystemChecker";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface GPUSelectorProps {
   onSelect: (gpu: SystemInfo) => void;
@@ -127,7 +132,17 @@ export function GPUSelector({ onSelect, selectedModel }: GPUSelectorProps) {
   return (
     <Card className="w-full shadow-sm hover:shadow-md transition-all">
       <div className="p-4">
-        <Label>GPU Model</Label>
+        <Label className="flex items-center gap-1.5 mb-2">
+          Graphics Card
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Info className="w-4 h-4 text-muted-foreground cursor-pointer" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="text-sm">Select your primary GPU model</p>
+            </TooltipContent>
+          </Tooltip>
+        </Label>
         <Command shouldFilter={false} className="rounded-lg border shadow-sm">
           <CommandInput
             placeholder="Search GPUs..."

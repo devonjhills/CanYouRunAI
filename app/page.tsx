@@ -1,12 +1,9 @@
 "use client";
 
-import { llmModels } from "@/app/data/llm-models";
 import { useEffect, useState } from "react";
-import { LLMModel } from "@/app/data/llm-models";
 import { SystemInfo, SystemChecker } from "@/app/components/SystemChecker";
 import Cookies from "js-cookie";
 import type { SystemSpecs, AdvancedAnalysis } from "./data/llm-models";
-import { AdvancedAnalysisSection } from "./components/AdvancedAnalysis";
 import LLMCompatibilityChecker from "./components/LLMCompatibilityChecker";
 
 const isProd = process.env.NODE_ENV === "production";
@@ -18,9 +15,6 @@ const QUANTIZE_WORKER_URL =
 
 export default function Home() {
   const [systemInfo, setSystemInfo] = useState<SystemInfo | undefined>(
-    undefined,
-  );
-  const [comparisonModel, setComparisonModel] = useState<LLMModel | undefined>(
     undefined,
   );
   const [analysis, setAnalysis] = useState<AdvancedAnalysis | null>(null);
@@ -103,8 +97,8 @@ export default function Home() {
 
   return (
     <div className="min-h-screen">
-      <section className="py-12 px-6">
-        <div className="max-w-6xl mx-auto space-y-12">
+      <section className="section-padding">
+        <div className="main-container space-y-12">
           <LLMCompatibilityChecker
             onSubmit={(info: SystemInfo, timestamp: string) => {
               setSystemInfo(info);
@@ -117,29 +111,17 @@ export default function Home() {
             <div id="system-requirements">
               <SystemChecker
                 systemInfo={systemInfo}
-                comparisonModel={comparisonModel}
-                models={llmModels}
-                onModelSelect={(id) =>
-                  setComparisonModel(llmModels.find((m) => m.id === id))
-                }
                 lastChecked={lastChecked}
-              />
-            </div>
-          )}
-
-          {/* Rest of the sections */}
-          <div className="space-y-16">
-            <div id="advanced-analysis">
-              <AdvancedAnalysisSection
+                onModelSelect={(id) => {
+                  setModelId(id);
+                  runAdvancedCheck();
+                }}
                 analysis={analysis}
                 loading={loading}
-                modelId={modelId}
-                setModelId={setModelId}
-                runAdvancedCheck={runAdvancedCheck}
                 error={error}
               />
             </div>
-          </div>
+          )}
         </div>
       </section>
     </div>
